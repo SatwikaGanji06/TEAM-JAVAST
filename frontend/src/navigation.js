@@ -18,6 +18,7 @@ export const NAV_SECTIONS = [
     label: 'Agents',
     items: [
       { id: 'agent-runs', label: 'Agent Runs' },
+      { id: 'agent-chat', label: 'Ask the Agent' },
       { id: 'coding-agent', label: 'Coding Agent' },
     ],
   },

@@ -32,14 +32,14 @@ export default function QuickActionCard({ action, onSelect }) {
     <button
       type="button"
       onClick={() => onSelect(action.id)}
-      className="flex w-full items-start gap-3 rounded-sm border border-white/10 bg-[#10131a] px-4 py-3.5 text-left transition-colors hover:border-white/20 hover:bg-white/5"
+      className="flex w-full items-start gap-3 rounded-sm border border-line bg-panel px-4 py-3.5 text-left transition-colors hover:border-line-strong hover:bg-hover"
     >
-      <span className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-sm border border-white/10 text-slate-300">
+      <span className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-sm border border-line text-ink-secondary">
         <Icon />
       </span>
       <span>
-        <span className="block text-sm text-slate-100">{action.title}</span>
-        <span className="mt-0.5 block text-xs text-slate-500">
+        <span className="block text-sm text-ink">{action.title}</span>
+        <span className="mt-0.5 block text-xs text-muted">
           {action.description}
         </span>
       </span>

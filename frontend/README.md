@@ -1,116 +1,112 @@
-# TEAM JAVAST — Sovereign AI Workbench (Frontend)
+# Sovereign AI Workbench — Frontend
 
-The frontend is the user interface for a **sovereign, on-premise, agentic AI workbench** for confidential industrial documents.
+React + Vite UI for TEAM JAVAST’s **sovereign, on-premise, agentic AI workbench**.
 
-It is not a chatbot. It is an industrial control surface for running a local agent pipeline over inspection reports and related records, then producing auditable findings, recommendations, and approval notes — without sending data off-premises.
+This is an industrial control surface for confidential inspection documents — not a generic chatbot. Operators upload a report, watch a local agent workflow, review findings, and ask questions about the analysis. Intelligence belongs behind FastAPI later; this prototype uses **mock data and local React state only**.
 
-## Purpose
+## Run locally
 
-Operators, inspectors, and reviewers use this UI to:
+```bash
+cd frontend
+npm install
+npm run dev
+```
 
-- Upload confidential inspection reports and related documents
-- Define an analysis task
-- Launch a local agent run
-- Watch OCR, extraction, vision, RAG, reasoning, and recommendation stages
-- Review findings and generate an approval note
-- Verify that processing stayed on-premise (sovereignty)
+Open **http://localhost:5173/**
 
-All intelligence lives behind the FastAPI backend. This frontend **only** presents workflow, status, and results, and talks to the backend over HTTP APIs.
+Other scripts: `npm run build`, `npm run preview`, `npm run lint`.
 
-## Main demo workflow
+Stack: React 19, Vite 7, JavaScript (not TypeScript), Tailwind CSS 4.
 
-The primary demonstration path is:
+## Demo workflow
 
-1. **Upload inspection report**
-2. **Define task**
-3. **Run agent**
-4. **OCR / extraction**
-5. **Vision analysis**
-6. **Local knowledge retrieval (RAG)**
-7. **Reasoning**
-8. **Recommendation**
-9. **Generate approval note**
-10. **Sovereignty verification**
+```
+New Analysis
+  → Agent Run (simulated stages)
+  → Analysis Result (findings + recommendation)
+  → Ask the Agent (contextual Q&A)
+```
 
-The UI should make this pipeline visible as a sequence of stages with status, artifacts, and a final auditable output — not as a free-form chat thread.
+Human review is required. The UI never presents AI output as an autonomous approval.
 
-## Stack (planned)
+## Implemented pages
 
-- **React** + **Vite**
-- Communicates with a **FastAPI** backend
-- Backend owns the agent, model router, and local AI models
+| Page | Status | Notes |
+| --- | --- | --- |
+| **Dashboard** | Implemented (mock) | System status, quick actions, recent runs, local infrastructure |
+| **New Analysis** | Implemented (mock) | Document select, analysis type, instructions, start → queued demo state |
+| **Agent Run** | Implemented (simulated) | Workflow timeline + live activity log; timed frontend simulation |
+| **Analysis Result** | Implemented (mock) | Findings, severity, AI recommendation, human review, approval-note placeholder |
+| **Ask the Agent** | Implemented (mock chat) | Contextual Q&A over the current analysis; simulated replies |
+| Documents / Knowledge Base / Models / Sovereignty / Coding Agent | Placeholder | Not in this frontend MVP |
+
+Global shell: dark industrial sidebar + top bar with **SYSTEM ONLINE** and **LOCAL**. Local processing is a system-wide property, not a per-analysis toggle.
+
+## Architecture (intended)
 
 ```
 React / Vite frontend
-        │  HTTP APIs
+        │  HTTP APIs (not connected yet)
         ▼
    FastAPI backend
         │
         ▼
-      Agent
+      Agent / RAG
         │
         ▼
-   Model Router
+   Model Router / Ollama
         │
         ▼
-  Local AI models
+  Local models (e.g. Qwen3:4B)
 ```
 
-## UI sections
+The frontend **must not** implement Ollama, OCR, RAG, vector search, agent reasoning, or document generation. Those stay on the backend.
 
-| Section | Role |
-| --- | --- |
-| **Dashboard** | Overview of runs, recent outputs, system health, and sovereignty status |
-| **New Analysis** | Upload documents, define the task, and start an agent run |
-| **Agent Run** | Live (or replayed) activity for OCR, extraction, vision, RAG, reasoning, and recommendation |
-| **Findings & Recommendation** | Structured findings, risk/recommendation view, and approval-note generation |
-| **Knowledge Base** | Local corpus used for RAG; browse sources and retrieval context |
-| **Models** | Model router view: which local models are available and which stage uses which model |
-| **Sovereignty Monitor** | Evidence that inference, retrieval, and generation stayed on-premise |
-| **Outputs** | Generated artifacts (extraction, notes, reports) for download and review |
+Current prototype: **no FastAPI, Ollama, or Qwen calls**. Chat, agent run, and findings are labeled as demo / simulated.
 
-## Architecture constraints
+## Project layout
 
-The frontend **must**:
+```text
+frontend/
+├── src/
+│   ├── App.jsx
+│   ├── navigation.js
+│   ├── pages/
+│   │   ├── Dashboard.jsx
+│   │   ├── NewAnalysis.jsx
+│   │   ├── AgentRun.jsx
+│   │   ├── AnalysisResult.jsx
+│   │   └── AgentChat.jsx
+│   ├── components/
+│   │   ├── Sidebar.jsx
+│   │   ├── TopBar.jsx
+│   │   ├── StatusBadge.jsx
+│   │   ├── analysis/
+│   │   ├── agent/
+│   │   ├── results/
+│   │   └── chat/
+│   └── data/          # mock contracts
+├── package.json
+└── README.md
+```
 
-- Call backend APIs for all analysis, retrieval, generation, and verification
-- Use **mock data** when those APIs are not yet available
+## Design
 
-The frontend **must not** directly implement:
+Dark industrial enterprise workbench: compact spacing, subtle borders, technical typography, restrained accents. Control-room language, not chat bubbles as the primary product.
 
-- Ollama or other local model runtimes
-- OCR
-- RAG / vector search
-- Agent reasoning
-- Document generation
+Ask the Agent is an **investigation layer** on top of:
 
-Those capabilities belong to the backend, agent, and model router.
+```
+Document → Agent analysis → Findings → Recommendation → Approval note
+```
 
-## Development stages
+## Still to build
 
-Build in this order:
+- Knowledge Base / RAG UI
+- Models / model router UI
+- Sovereignty monitor (real verification)
+- Backend API integration (replace mocks)
+- Approval-note DOCX generation
+- Final demo polish
 
-1. **Frontend foundation** — Vite + React project, tooling, tokens, mock contracts
-2. **Application shell** — layout, navigation, dark industrial chrome
-3. **Dashboard**
-4. **New Analysis**
-5. **Agent Activity** (Agent Run)
-6. **Findings & Recommendation**
-7. **Knowledge Base / RAG UI**
-8. **Models / Model Router**
-9. **Sovereignty Monitor**
-10. **Backend API integration** — replace mocks with real endpoints
-11. **Final demo polish**
-
-## Design direction
-
-**Dark industrial enterprise interface.**
-
-- Professional, technical, secure, and modern
-- Dense enough for operators; not a consumer chatbot
-- Emphasize pipeline stages, evidence, and auditability
-- Visual language: control room / workbench, not chat bubbles
-
-## Current status
-
-This folder currently holds frontend documentation only. React + Vite scaffolding comes in a later stage. Do not assume packages or application source exist here yet.
+Coding Agent is **out of MVP** and is not implemented.

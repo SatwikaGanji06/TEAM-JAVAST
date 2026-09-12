@@ -1,11 +1,11 @@
 const TONES = {
   online: {
-    dot: 'bg-emerald-400',
-    text: 'text-emerald-400',
+    dot: 'bg-success',
+    text: 'text-success',
   },
   local: {
-    dot: 'bg-sky-400',
-    text: 'text-slate-200',
+    dot: 'bg-accent',
+    text: 'text-ink',
   },
 }
 
@@ -14,7 +14,7 @@ function LockIcon() {
     <svg
       viewBox="0 0 16 16"
       aria-hidden="true"
-      className="h-3 w-3 text-sky-300/90"
+      className="h-3 w-3 text-accent"
     >
       <path
         fill="currentColor"
