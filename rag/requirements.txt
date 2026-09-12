@@ -2,3 +2,6 @@ requests
 numpy
 pytest
 pypdf
+psycopg[binary]
+python-dotenv
+pgvector
