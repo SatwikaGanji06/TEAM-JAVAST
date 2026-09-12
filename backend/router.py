@@ -1,15 +1,21 @@
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, Field
+from typing import Optional
 import requests
+from datetime import datetime
 
 from models.qwen import ask_qwen
 from security.audit import log_event
+from database.repository import DatabaseRepository
 
 api_router = APIRouter()
+db_repo = DatabaseRepository()
 
 
 class ChatRequest(BaseModel):
     message: str = Field(min_length=1)
+    conversation_id: Optional[int] = None
+    user_id: Optional[int] = 1  # Default to admin for prototype
 
 
 class ChatResponse(BaseModel):
@@ -111,35 +117,40 @@ def route_request(
 
 @api_router.post("/api/chat", response_model=ChatResponse)
 def chat(payload: ChatRequest) -> ChatResponse:
-    message = payload.message.strip()
+    message_text = payload.message.strip()
 
-    if not message:
+    if not message_text:
         raise HTTPException(status_code=400, detail="Message is required.")
 
+    user_id = payload.user_id or 1
+    conv_id = payload.conversation_id
+
     try:
+        # 1. Conversation Persistence: Ensure we have a conversation
+        if conv_id is None:
+            conv_id = db_repo.create_conversation(user_id=user_id, title=f"Chat {datetime.now().strftime('%Y-%m-%d %H:%M')}")
+
+        # 2. Store User Message
+        db_repo.add_message(conversation_id=conv_id, sender="user", text=message_text)
+
+        # 3. Route Request to Model
         result = route_request(
-            messages=[{"role": "user", "content": message}],
+            messages=[{"role": "user", "content": message_text}],
             request_type="text",
+            user_id=user_id
         )
-        return ChatResponse(response=result["response"])
+
+        response_text = result["response"]
+
+        # 4. Store Assistant Message
+        db_repo.add_message(conversation_id=conv_id, sender="assistant", text=response_text)
+
+        return ChatResponse(response=response_text)
 
     except HTTPException:
         raise
-
-    except PermissionError:
+    except Exception as e:
         raise HTTPException(
             status_code=503,
-            detail="Unable to reach the local AI backend.",
-        )
-
-    except requests.RequestException:
-        raise HTTPException(
-            status_code=503,
-            detail="Unable to reach the local AI backend.",
-        )
-
-    except Exception:
-        raise HTTPException(
-            status_code=503,
-            detail="Unable to reach the local AI backend.",
+            detail=f"Unable to reach the local AI backend: {str(e)}",
         )
