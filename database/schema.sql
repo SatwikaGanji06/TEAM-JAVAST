@@ -6,7 +6,6 @@ CREATE TABLE roles (
     role_name VARCHAR(30) UNIQUE NOT NULL,
     description TEXT NOT NULL
 );
-SELECT * FROM roles;
 
 CREATE TABLE users (
     user_id SERIAL PRIMARY KEY,
@@ -21,7 +20,6 @@ CREATE TABLE users (
         ON UPDATE CASCADE
         ON DELETE RESTRICT
 );
-SELECT * FROM users;
 
 CREATE TABLE documents (
     document_id SERIAL PRIMARY KEY,
@@ -79,13 +77,11 @@ CREATE TABLE audit_logs (
     entity_id INTEGER,
     details TEXT,
     ip_address VARCHAR(45),
+    model VARCHAR(100),
+    success BOOLEAN DEFAULT TRUE,
+    external_call BOOLEAN DEFAULT FALSE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
-
-ALTER TABLE audit_logs
-ADD COLUMN model VARCHAR(100),
-ADD COLUMN success BOOLEAN DEFAULT TRUE,
-ADD COLUMN external_call BOOLEAN DEFAULT FALSE;
 
 -- Phase 3: Vector Storage Extensions
 CREATE EXTENSION IF NOT EXISTS vector;
