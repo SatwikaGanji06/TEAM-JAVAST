@@ -7,6 +7,7 @@ from datetime import datetime
 from backend.models.qwen import ask_qwen
 from backend.security.audit import log_event
 from backend.database.repository import DatabaseRepository
+from backend.agent.agent import run_agent
 
 api_router = APIRouter()
 db_repo = DatabaseRepository()
@@ -114,6 +115,31 @@ def route_request(
 
         raise
 
+def _build_agent_response(agent_result: dict) -> str:
+    """
+    Convert the agent execution result into the final response text.
+    """
+
+    results = agent_result.get("results", [])
+
+    if not results:
+        return "The agent could not produce a result."
+
+    # For the current Phase-1 agent, there is one execution result.
+    first_result = results[0]
+
+    result = first_result.get("result", {})
+
+    if isinstance(result, dict):
+        answer = result.get("answer")
+
+        if answer:
+            return answer
+
+    if isinstance(result, str):
+        return result
+
+    return "The agent completed the requested operation but produced no response."
 
 @api_router.post("/api/chat", response_model=ChatResponse)
 def chat(payload: ChatRequest) -> ChatResponse:
@@ -126,31 +152,40 @@ def chat(payload: ChatRequest) -> ChatResponse:
     conv_id = payload.conversation_id
 
     try:
-        # 1. Conversation Persistence: Ensure we have a conversation
+        # 1. Ensure conversation exists
         if conv_id is None:
-            conv_id = db_repo.create_conversation(user_id=user_id, title=f"Chat {datetime.now().strftime('%Y-%m-%d %H:%M')}")
+            conv_id = db_repo.create_conversation(
+                user_id=user_id,
+                title=f"Chat {datetime.now().strftime('%Y-%m-%d %H:%M')}"
+            )
 
-        # 2. Store User Message
-        db_repo.add_message(conversation_id=conv_id, sender="user", text=message_text)
-
-        # 3. Route Request to Model
-        result = route_request(
-            messages=[{"role": "user", "content": message_text}],
-            request_type="text",
-            user_id=user_id
+        # 2. Store user message
+        db_repo.add_message(
+            conversation_id=conv_id,
+            sender="user",
+            text=message_text
         )
 
-        response_text = result["response"]
+        # 3. Run the agent
+        agent_result = run_agent(message_text)
 
-        # 4. Store Assistant Message
-        db_repo.add_message(conversation_id=conv_id, sender="assistant", text=response_text)
+        # 4. Extract final response
+        response_text = _build_agent_response(agent_result)
+
+        # 5. Store assistant message
+        db_repo.add_message(
+            conversation_id=conv_id,
+            sender="assistant",
+            text=response_text
+        )
 
         return ChatResponse(response=response_text)
 
     except HTTPException:
         raise
+
     except Exception as e:
         raise HTTPException(
             status_code=503,
-            detail=f"Unable to reach the local AI backend: {str(e)}",
+            detail=f"Unable to complete the local AI request: {str(e)}",
         )
