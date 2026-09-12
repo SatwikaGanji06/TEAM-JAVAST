@@ -5,3 +5,8 @@ __pycache__/
 *.py[cod]
 .pytest_cache/
 
+rag/data/raw/*
+rag/data/processed/*
+
+!rag/data/raw/.gitkeep
+!rag/data/processed/.gitkeep
