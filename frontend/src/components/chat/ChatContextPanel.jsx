@@ -72,7 +72,7 @@ export default function ChatContextPanel({ context }) {
           Execution: {context.execution}
         </p>
         <p className="mt-3 text-[10px] tracking-[0.14em] text-muted uppercase">
-          Simulated · not connected
+          Local backend
         </p>
       </div>
     </aside>

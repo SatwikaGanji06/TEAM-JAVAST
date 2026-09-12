@@ -1,53 +1,25 @@
-from router import route_request
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+
+from router import api_router
+
+app = FastAPI(title="TEAM JAVAST AI Backend")
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "http://localhost:5173",
+        "http://127.0.0.1:5173",
+    ],
+    allow_credentials=True,
+    allow_methods=["GET", "POST", "OPTIONS"],
+    allow_headers=["Content-Type"],
+)
+
+app.include_router(api_router)
 
 
 if __name__ == "__main__":
+    import uvicorn
 
-    print("===================================")
-    print("       TEAM JAVAST AI BACKEND")
-    print("===================================")
-    print("Model Router: Online")
-    print("Text Model: Qwen3 4B")
-    print("Conversation History: Enabled")
-    print("Ollama: Connected locally")
-    print("Type 'exit' to stop.\n")
-
-    conversation = []
-
-    while True:
-
-        question = input("You: ").strip()
-
-        if question.lower() == "exit":
-            break
-
-        if not question:
-            continue
-
-        try:
-
-            # Add user message to conversation
-            conversation.append({
-                "role": "user",
-                "content": question
-            })
-
-            # Send conversation history to router
-            result = route_request(
-                messages=conversation,
-                request_type="text"
-            )
-
-            answer = result["response"]
-
-            # Add assistant response to conversation
-            conversation.append({
-                "role": "assistant",
-                "content": answer
-            })
-
-            print("\nQwen:", answer)
-            print()
-
-        except Exception as e:
-            print(f"\nError: {e}\n")
+    uvicorn.run("main:app", host="127.0.0.1", port=8000, reload=True)

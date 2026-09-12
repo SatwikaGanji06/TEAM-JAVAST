@@ -4,14 +4,12 @@ import ChatMessage from '../components/chat/ChatMessage.jsx'
 import ChatInput from '../components/chat/ChatInput.jsx'
 import ChatContextPanel from '../components/chat/ChatContextPanel.jsx'
 import SuggestedPrompts from '../components/chat/SuggestedPrompts.jsx'
+import { sendChatMessage } from '../api/chatApi.js'
 import {
   CHAT_CONTEXT,
   INITIAL_MESSAGES,
   SUGGESTED_QUESTIONS,
-  mockReplyFor,
 } from '../data/chatData.js'
-
-const REPLY_DELAY_MS = 900
 
 const ACTION_NOTICES = {
   evidence:
@@ -24,7 +22,6 @@ export default function AgentChat() {
   const [messages, setMessages] = useState(INITIAL_MESSAGES)
   const [isThinking, setIsThinking] = useState(false)
   const listRef = useRef(null)
-  const timerRef = useRef(null)
 
   useEffect(() => {
     const node = listRef.current
@@ -33,11 +30,7 @@ export default function AgentChat() {
     }
   }, [messages, isThinking])
 
-  useEffect(() => {
-    return () => window.clearTimeout(timerRef.current)
-  }, [])
-
-  function sendQuestion(question) {
+  async function sendQuestion(question) {
     if (isThinking) return
 
     const userMessage = {
@@ -49,19 +42,28 @@ export default function AgentChat() {
     setMessages((current) => [...current, userMessage])
     setIsThinking(true)
 
-    timerRef.current = window.setTimeout(() => {
-      const reply = mockReplyFor(question)
+    try {
+      const data = await sendChatMessage(question)
       setMessages((current) => [
         ...current,
         {
           id: `agent-${Date.now()}`,
           role: 'assistant',
-          text: reply.text,
-          action: reply.action,
+          text: data.response,
         },
       ])
+    } catch {
+      setMessages((current) => [
+        ...current,
+        {
+          id: `agent-${Date.now()}`,
+          role: 'assistant',
+          text: 'Unable to reach the local AI backend.',
+        },
+      ])
+    } finally {
       setIsThinking(false)
-    }, REPLY_DELAY_MS)
+    }
   }
 
   function handleAction(messageId, action) {
@@ -94,7 +96,7 @@ export default function AgentChat() {
                 Qwen
               </span>
               <span className="text-[10px] tracking-[0.16em] text-muted uppercase">
-                Demo chat · Simulated local model
+                Local backend · Qwen3:4B
               </span>
             </div>
           </div>

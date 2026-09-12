@@ -3,7 +3,7 @@ from pathlib import Path
 import json
 
 
-AUDIT_LOG_FILE = Path("backend/security/audit.log")
+AUDIT_LOG_FILE = Path(__file__).resolve().parent / "audit.log"
 
 
 def log_event(

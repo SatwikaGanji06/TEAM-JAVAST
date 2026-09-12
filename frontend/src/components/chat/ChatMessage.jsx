@@ -14,7 +14,7 @@ export default function ChatMessage({ message, onAction }) {
           <p className="text-[10px] font-medium tracking-[0.16em] text-muted uppercase">
             {isUser ? 'User' : 'Local agent'}
           </p>
-          {isUser ? null : (
+          {isUser || !message.simulated ? null : (
             <span className="text-[10px] tracking-[0.12em] text-muted uppercase">
               Simulated
             </span>

@@ -1,5 +1,19 @@
+from fastapi import APIRouter, HTTPException
+from pydantic import BaseModel, Field
+import requests
+
 from models.qwen import ask_qwen
 from security.audit import log_event
+
+api_router = APIRouter()
+
+
+class ChatRequest(BaseModel):
+    message: str = Field(min_length=1)
+
+
+class ChatResponse(BaseModel):
+    response: str
 
 
 MODEL_REGISTRY = {
@@ -93,3 +107,39 @@ def route_request(
         )
 
         raise
+
+
+@api_router.post("/api/chat", response_model=ChatResponse)
+def chat(payload: ChatRequest) -> ChatResponse:
+    message = payload.message.strip()
+
+    if not message:
+        raise HTTPException(status_code=400, detail="Message is required.")
+
+    try:
+        result = route_request(
+            messages=[{"role": "user", "content": message}],
+            request_type="text",
+        )
+        return ChatResponse(response=result["response"])
+
+    except HTTPException:
+        raise
+
+    except PermissionError:
+        raise HTTPException(
+            status_code=503,
+            detail="Unable to reach the local AI backend.",
+        )
+
+    except requests.RequestException:
+        raise HTTPException(
+            status_code=503,
+            detail="Unable to reach the local AI backend.",
+        )
+
+    except Exception:
+        raise HTTPException(
+            status_code=503,
+            detail="Unable to reach the local AI backend.",
+        )

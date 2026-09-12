@@ -29,6 +29,7 @@ export const INITIAL_MESSAGES = [
   {
     id: 'm0',
     role: 'assistant',
+    simulated: true,
     text: 'Analysis context loaded. I can help explain the findings, evidence, and recommendation from this inspection analysis.',
   },
   {
@@ -39,6 +40,7 @@ export const INITIAL_MESSAGES = [
   {
     id: 'm2',
     role: 'assistant',
+    simulated: true,
     text: 'Finding #1 was classified as HIGH because the inspection evidence indicates a potentially significant equipment condition that may affect operational reliability.\n\nThe classification is based on:\n• Severity of the observed condition\n• Potential operational impact\n• Evidence extracted from the inspection report\n• Relevant maintenance context',
     action: 'evidence',
   },
@@ -50,6 +52,7 @@ export const INITIAL_MESSAGES = [
   {
     id: 'm4',
     role: 'assistant',
+    simulated: true,
     text: 'The recommendation is supported by the inspection observations and the retrieved maintenance guidance associated with the affected equipment.\n\nRelevant evidence:\n1. Inspection observation\n2. Equipment condition\n3. Historical maintenance context',
     action: 'sources',
   },
