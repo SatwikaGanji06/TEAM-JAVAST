@@ -59,15 +59,19 @@ class VectorStore:
 
         Args:
             document_id: ID of the document.
-            chunks: List of dictionaries containing 'text', 'embedding', and 'metadata'.
+            chunks: List of dictionaries containing 'text', 'embedding',
+                    'chunk_index', and 'metadata'. Falls back to
+                    metadata['chunk_index'] if the top-level field is absent.
         """
         with self._get_connection() as conn:
             with conn.cursor() as cur:
                 for chunk in chunks:
                     text = chunk["text"]
                     embedding = chunk["embedding"]
-                    metadata = chunk["metadata"]
-                    chunk_index = chunk.get("chunk_index", 0)
+                    metadata = chunk.get("metadata") or {}
+                    chunk_index = chunk.get("chunk_index")
+                    if chunk_index is None:
+                        chunk_index = metadata.get("chunk_index", 0)
 
                     if len(embedding) != 1024:
                         raise ValueError(f"Embedding must be 1024-dimensional, got {len(embedding)}")

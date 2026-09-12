@@ -42,6 +42,13 @@ def ingest_document(file_path: str | Path, document_id: int | None = None, store
     if not chunks:
         return []
 
+    # Document-level sequential index. Per-page PDF chunking would otherwise
+    # restart at 0; keep top-level and metadata in sync for storage.
+    for i, chunk in enumerate(chunks):
+        chunk["chunk_index"] = i
+        chunk.setdefault("metadata", {})
+        chunk["metadata"]["chunk_index"] = i
+
     # 2. Embedding & Storage (Phase 3)
     if store_in_db:
         # Generate embeddings for all chunks in one batch

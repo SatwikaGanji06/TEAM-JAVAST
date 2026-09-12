@@ -1,10 +1,12 @@
 # Sovereign AI Workbench — Frontend
 
-React + Vite UI for TEAM JAVAST’s **sovereign, on-premise, agentic AI workbench**.
+React + Vite UI for TEAM JAVAST.
 
-This is an industrial control surface for confidential inspection documents — not a generic chatbot. Operators upload a report, watch a local agent workflow, review findings, and ask questions about the analysis. Intelligence belongs behind FastAPI later; this prototype uses **mock data and local React state only**.
+The browser talks only to the local FastAPI backend. It does not call Ollama.
 
-## Run locally
+## Run
+
+From the repository root, follow the main [README](../README.md). Frontend only:
 
 ```bash
 cd frontend
@@ -14,99 +16,50 @@ npm run dev
 
 Open **http://localhost:5173/**
 
-Other scripts: `npm run build`, `npm run preview`, `npm run lint`.
-
-Stack: React 19, Vite 7, JavaScript (not TypeScript), Tailwind CSS 4.
-
-## Demo workflow
-
-```
-New Analysis
-  → Agent Run (simulated stages)
-  → Analysis Result (findings + recommendation)
-  → Ask the Agent (contextual Q&A)
-```
-
-Human review is required. The UI never presents AI output as an autonomous approval.
-
-## Implemented pages
-
-| Page | Status | Notes |
-| --- | --- | --- |
-| **Dashboard** | Implemented (mock) | System status, quick actions, recent runs, local infrastructure |
-| **New Analysis** | Implemented (mock) | Document select, analysis type, instructions, start → queued demo state |
-| **Agent Run** | Implemented (simulated) | Workflow timeline + live activity log; timed frontend simulation |
-| **Analysis Result** | Implemented (mock) | Findings, severity, AI recommendation, human review, approval-note placeholder |
-| **Ask the Agent** | Implemented (mock chat) | Contextual Q&A over the current analysis; simulated replies |
-| Documents / Knowledge Base / Models / Sovereignty / Coding Agent | Placeholder | Not in this frontend MVP |
-
-Global shell: dark industrial sidebar + top bar with **SYSTEM ONLINE** and **LOCAL**. Local processing is a system-wide property, not a per-analysis toggle.
-
-## Architecture (intended)
-
-```
-React / Vite frontend
-        │  HTTP APIs (not connected yet)
-        ▼
-   FastAPI backend
-        │
-        ▼
-      Agent / RAG
-        │
-        ▼
-   Model Router / Ollama
-        │
-        ▼
-  Local models (e.g. Qwen3:4B)
-```
-
-The frontend **must not** implement Ollama, OCR, RAG, vector search, agent reasoning, or document generation. Those stay on the backend.
-
-Current prototype: **no FastAPI, Ollama, or Qwen calls**. Chat, agent run, and findings are labeled as demo / simulated.
-
-## Project layout
+Optional: copy `.env.example` to `.env`
 
 ```text
-frontend/
-├── src/
-│   ├── App.jsx
-│   ├── navigation.js
-│   ├── pages/
-│   │   ├── Dashboard.jsx
-│   │   ├── NewAnalysis.jsx
-│   │   ├── AgentRun.jsx
-│   │   ├── AnalysisResult.jsx
-│   │   └── AgentChat.jsx
-│   ├── components/
-│   │   ├── Sidebar.jsx
-│   │   ├── TopBar.jsx
-│   │   ├── StatusBadge.jsx
-│   │   ├── analysis/
-│   │   ├── agent/
-│   │   ├── results/
-│   │   └── chat/
-│   └── data/          # mock contracts
-├── package.json
-└── README.md
+VITE_API_BASE_URL=http://localhost:8000
 ```
 
-## Design
+Scripts: `npm run build`, `npm run preview`, `npm run lint`.
 
-Dark industrial enterprise workbench: compact spacing, subtle borders, technical typography, restrained accents. Control-room language, not chat bubbles as the primary product.
+Stack: React 19, Vite 7, JavaScript, Tailwind CSS 4.
 
-Ask the Agent is an **investigation layer** on top of:
+## Pages
 
+There is no React Router. `App.jsx` switches pages. The URL stays `/`.
+
+| Sidebar | Component | Notes |
+|---|---|---|
+| Home | `pages/Home.jsx` | Chat → `api/chatApi.js` → `POST /api/chat` |
+| Documents | `pages/Documents.jsx` | File library (session/mock). Analyze seeds Home. |
+| Knowledge Base | `pages/KnowledgeBase.jsx` | Reference layout only |
+| Runs | `pages/Runs.jsx` / `RunDetail.jsx` | Demo history |
+| Models | `pages/Models.jsx` | Model stack copy |
+| Sovereignty | `pages/Sovereignty.jsx` | Local-processing overview |
+| Profile | `pages/Profile.jsx` | Demo profile + theme |
+
+## Chat path
+
+```text
+Home composer
+  → sendChatMessage(message)
+  → POST ${VITE_API_BASE_URL}/api/chat
+  → FastAPI → ask_qwen() → Ollama → Qwen3:4B
 ```
-Document → Agent analysis → Findings → Recommendation → Approval note
+
+Attachments in the composer are UI-only until an upload API exists.
+
+## Layout
+
+```text
+frontend/src/
+├── App.jsx
+├── navigation.js
+├── api/chatApi.js
+├── pages/
+├── components/          # sidebar, chat, analysis, results
+├── data/
+└── theme/
 ```
-
-## Still to build
-
-- Knowledge Base / RAG UI
-- Models / model router UI
-- Sovereignty monitor (real verification)
-- Backend API integration (replace mocks)
-- Approval-note DOCX generation
-- Final demo polish
-
-Coding Agent is **out of MVP** and is not implemented.

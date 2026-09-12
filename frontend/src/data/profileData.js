@@ -6,14 +6,14 @@ export const FUTURE_ROLES = [
 ]
 
 export const DEMO_PROFILE = {
-  id: 'demo-user-001',
-  name: 'Satwika Ganji',
-  initials: 'SJ',
-  role: 'AI Engineer',
-  department: 'AI Systems',
-  status: 'ACTIVE',
+  id: 'local-user',
+  name: 'User',
+  initials: 'U',
+  role: '',
+  department: '',
+  status: 'LOCAL',
   session: 'LOCAL WORKBENCH',
   access: 'Local AI Workbench',
-  label: 'DEMO PROFILE',
+  label: '',
   isAuthenticated: false,
 }

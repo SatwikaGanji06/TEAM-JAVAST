@@ -2,24 +2,15 @@ export const NAV_SECTIONS = [
   {
     id: 'main',
     label: 'Main',
-    items: [{ id: 'dashboard', label: 'Dashboard' }],
+    items: [{ id: 'home', label: 'Home' }],
   },
   {
     id: 'workspace',
     label: 'Workspace',
     items: [
-      { id: 'new-analysis', label: 'New Analysis' },
       { id: 'documents', label: 'Documents' },
       { id: 'knowledge-base', label: 'Knowledge Base' },
-    ],
-  },
-  {
-    id: 'agents',
-    label: 'Agents',
-    items: [
-      { id: 'agent-runs', label: 'Agent Runs' },
-      { id: 'agent-chat', label: 'Ask the Agent' },
-      { id: 'coding-agent', label: 'Coding Agent' },
+      { id: 'runs', label: 'Runs' },
     ],
   },
   {
@@ -32,10 +23,19 @@ export const NAV_SECTIONS = [
   },
 ]
 
-export const PAGE_TITLES = NAV_SECTIONS.flatMap((section) => section.items).reduce(
-  (titles, item) => {
-    titles[item.id] = item.label
-    return titles
-  },
-  {},
+export const PAGE_TITLES = {
+  home: 'Home',
+  documents: 'Documents',
+  'knowledge-base': 'Knowledge Base',
+  runs: 'Runs',
+  'run-detail': 'Run',
+  models: 'Models',
+  sovereignty: 'Sovereignty',
+  profile: 'Profile',
+  'new-analysis': 'New Analysis',
+  'coding-agent': 'Coding Agent',
+}
+
+export const PRIMARY_PAGE_IDS = NAV_SECTIONS.flatMap((section) =>
+  section.items.map((item) => item.id),
 )

@@ -2,8 +2,8 @@ from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, Field
 import requests
 
-from models.qwen import ask_qwen
-from security.audit import log_event
+from backend.models.qwen import ask_qwen
+from backend.security.audit import log_event
 
 api_router = APIRouter()
 
