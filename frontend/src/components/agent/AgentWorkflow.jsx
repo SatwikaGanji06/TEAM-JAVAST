@@ -6,7 +6,7 @@ export default function AgentWorkflow({ steps, progress }) {
       <div className="mb-4 flex items-end justify-between gap-4">
         <div>
           <h2 className="text-[11px] font-semibold tracking-[0.22em] text-muted uppercase">
-            Agent progress
+            Agent workflow
           </h2>
           <p className="mt-1 text-sm text-ink">{progress}%</p>
         </div>
@@ -18,10 +18,6 @@ export default function AgentWorkflow({ steps, progress }) {
           style={{ width: `${progress}%` }}
         />
       </div>
-
-      <h2 className="mb-3 text-[11px] font-semibold tracking-[0.22em] text-muted uppercase">
-        Agent workflow
-      </h2>
 
       <ol>
         {steps.map((step, index) => (

@@ -17,7 +17,7 @@ export default function NextActionPanel({
         <button
           type="button"
           onClick={onGenerateNote}
-          className="rounded-sm bg-sky-500/90 px-4 py-2 text-[11px] font-semibold tracking-[0.14em] text-slate-950 uppercase transition-colors hover:bg-sky-400"
+          className="rounded-md bg-accent px-4 py-2 font-mono text-[11px] font-semibold tracking-[0.12em] text-app uppercase transition-colors hover:bg-accent-strong"
         >
           Generate approval note
         </button>

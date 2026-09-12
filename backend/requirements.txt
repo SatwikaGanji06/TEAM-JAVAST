@@ -4,3 +4,4 @@ uvicorn
 psycopg[binary]
 pgvector
 python-dotenv
+python-multipart

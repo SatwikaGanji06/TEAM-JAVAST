@@ -4,9 +4,9 @@ from typing import Optional
 import requests
 from datetime import datetime
 
-from models.qwen import ask_qwen
-from security.audit import log_event
-from database.repository import DatabaseRepository
+from backend.models.qwen import ask_qwen
+from backend.security.audit import log_event
+from backend.database.repository import DatabaseRepository
 
 api_router = APIRouter()
 db_repo = DatabaseRepository()

@@ -1,7 +1,7 @@
 from datetime import datetime, timezone
 from pathlib import Path
 import json
-from database.repository import DatabaseRepository
+from backend.database.repository import DatabaseRepository
 
 AUDIT_LOG_FILE = Path(__file__).resolve().parent / "audit.log"
 db_repo = DatabaseRepository()
