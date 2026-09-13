@@ -147,7 +147,8 @@ def _build_agent_response(
     agent_result: dict,
 ) -> tuple[str, list[dict]]:
     """
-    Extract the final Qwen response and RAG sources.
+    Extract the final Qwen response and RAG sources
+    from the completed agent workflow.
     """
 
     results = agent_result.get("results", [])
@@ -156,18 +157,30 @@ def _build_agent_response(
     sources = []
 
     for item in results:
+
         if not isinstance(item, dict):
             continue
 
+        action = item.get("action")
         result = item.get("result")
 
         if not isinstance(result, dict):
             continue
 
-        answer = result.get("answer")
+        # ----------------------------------------------------
+        # Final LLM response
+        # ----------------------------------------------------
 
-        if answer:
-            final_answer = answer
+        if action == "llm_response":
+
+            answer = result.get("answer")
+
+            if answer:
+                final_answer = answer
+
+        # ----------------------------------------------------
+        # RAG sources
+        # ----------------------------------------------------
 
         item_sources = result.get("sources", [])
 
@@ -206,6 +219,10 @@ def chat(payload: ChatRequest) -> ChatResponse:
 
     try:
 
+        # ----------------------------------------------------
+        # Conversation storage
+        # ----------------------------------------------------
+
         if conv_id is None:
 
             conv_id = db_repo.create_conversation(
@@ -222,13 +239,30 @@ def chat(payload: ChatRequest) -> ChatResponse:
             text=message_text,
         )
 
-        # Main entry point:
-        # planner -> RAG/tools -> Qwen3:4B -> final answer
+        # ----------------------------------------------------
+        # MAIN AGENT ENTRY POINT
+        #
+        # IMPORTANT:
+        # The frontend does NOT decide whether this is RAG,
+        # calculator, or normal chat.
+        #
+        # Everything comes through run_agent().
+        # The planner decides what is required.
+        # ----------------------------------------------------
+
         agent_result = run_agent(message_text)
+
+        # ----------------------------------------------------
+        # Build final response
+        # ----------------------------------------------------
 
         response_text, sources = _build_agent_response(
             agent_result
         )
+
+        # ----------------------------------------------------
+        # Store assistant response
+        # ----------------------------------------------------
 
         db_repo.add_message(
             conversation_id=conv_id,
@@ -278,6 +312,7 @@ def generate_approval_note_endpoint(
 
     try:
 
+        # Use the same agent/router workflow
         agent_result = run_agent(message_text)
 
         note_data = build_approval_note_data(
@@ -285,7 +320,10 @@ def generate_approval_note_endpoint(
         )
 
         output_dir = Path("backend") / "generated"
-        output_dir.mkdir(parents=True, exist_ok=True)
+        output_dir.mkdir(
+            parents=True,
+            exist_ok=True,
+        )
 
         output_path = (
             output_dir / "approval_note.docx"

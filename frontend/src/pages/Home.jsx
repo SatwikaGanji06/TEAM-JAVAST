@@ -126,7 +126,7 @@ export default function Home({
        *   RAG + tools
        * and finally Qwen3:4B generates the response.
        */
-      const data = await sendChatMessage(text)
+      const data = await sendChatMessage(text);
 
       const sources = Array.isArray(data.sources)
         ? data.sources
