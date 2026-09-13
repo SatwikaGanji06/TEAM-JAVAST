@@ -1,7 +1,6 @@
 import ast
 import operator
 import re
-from typing import Any
 
 
 _OPERATORS = {
@@ -20,7 +19,7 @@ def _evaluate_ast(expression: str) -> float:
 
     tree = ast.parse(expression, mode="eval")
 
-    def evaluate(node: ast.AST) -> float:
+    def evaluate(node):
         if (
             isinstance(node, ast.Constant)
             and isinstance(node.value, (int, float))
@@ -49,47 +48,39 @@ def _evaluate_ast(expression: str) -> float:
     return evaluate(tree.body)
 
 
-def _parse_natural_percentage(expression: str) -> float | None:
+def _parse_percentage(expression: str) -> float | None:
     """
-    Support natural-language percentage calculations.
+    Handle natural-language percentage expressions.
 
     Examples:
         15% of 800
         20 percent of 500
-        15% of 800 + 10
+        7.5% of 200
     """
 
     text = expression.strip().lower()
 
-    match = re.fullmatch(
-        r"(\d+(?:\.\d+)?)\s*%?\s*(?:percent\s*)?(?:of)\s*"
-        r"(\d+(?:\.\d+)?)",
-        text,
+    pattern = (
+        r"^(\d+(?:\.\d+)?)\s*"
+        r"(?:%|percent|percentage)\s+of\s+"
+        r"(\d+(?:\.\d+)?)$"
     )
 
-    if match:
-        percentage = float(match.group(1))
-        value = float(match.group(2))
+    match = re.match(pattern, text)
 
-        return (percentage / 100.0) * value
+    if not match:
+        return None
 
-    return None
+    percentage = float(match.group(1))
+    value = float(match.group(2))
 
-
-def _parse_percentage_of(expression: str) -> float | None:
-    """
-    Support:
-        15 percent of 800
-        15% of 800
-    """
-
-    return _parse_natural_percentage(expression)
+    return (percentage / 100.0) * value
 
 
 def calculate(expression: str) -> float:
     """
-    Safely evaluate arithmetic and common natural-language
-    percentage expressions.
+    Safely evaluate arithmetic expressions and
+    common natural-language percentage calculations.
     """
 
     if not expression or not expression.strip():
@@ -97,19 +88,13 @@ def calculate(expression: str) -> float:
 
     expression = expression.strip()
 
-    # --------------------------------------------------------
     # Natural-language percentage
-    # --------------------------------------------------------
-
-    percentage_result = _parse_percentage_of(expression)
+    percentage_result = _parse_percentage(expression)
 
     if percentage_result is not None:
         return percentage_result
 
-    # --------------------------------------------------------
     # Normal arithmetic
-    # --------------------------------------------------------
-
     try:
         return _evaluate_ast(expression)
 

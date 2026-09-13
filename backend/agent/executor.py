@@ -1,9 +1,42 @@
+import re
 from typing import Any
 
 from backend.models.qwen import ask_qwen
 from backend.services.rag_service import query_rag
 from backend.tools.calculator import calculate
 from backend.tools.document_reader import read_document
+
+
+def _extract_calculation_expression(query: str) -> str:
+    """
+    Extract a supported calculation expression from a
+    natural-language request.
+
+    Examples:
+        "Calculate 15% of 800"
+            -> "15% of 800"
+
+        "What is 20 percent of 500?"
+            -> "20 percent of 500"
+
+        "100/15"
+            -> "100/15"
+    """
+
+    question = (query or "").strip()
+
+    percentage_match = re.search(
+        r"\d+(?:\.\d+)?\s*"
+        r"(?:%|percent|percentage)\s+of\s+"
+        r"\d+(?:\.\d+)?",
+        question,
+        re.IGNORECASE,
+    )
+
+    if percentage_match:
+        return percentage_match.group(0)
+
+    return question
 
 
 def execute_step(step: dict[str, Any]) -> dict[str, Any]:
@@ -13,7 +46,12 @@ def execute_step(step: dict[str, Any]) -> dict[str, Any]:
 
     action = step.get("action")
 
+    # ========================================================
+    # RAG
+    # ========================================================
+
     if action == "rag_search":
+
         result = query_rag(step["query"])
 
         return {
@@ -22,8 +60,18 @@ def execute_step(step: dict[str, Any]) -> dict[str, Any]:
             "result": result,
         }
 
+    # ========================================================
+    # CALCULATOR
+    # ========================================================
+
     if action == "calculator":
-        expression = step.get("expression") or step.get("query")
+
+        expression = (
+            step.get("expression")
+            or _extract_calculation_expression(
+                step.get("query", "")
+            )
+        )
 
         result = calculate(expression)
 
@@ -36,7 +84,12 @@ def execute_step(step: dict[str, Any]) -> dict[str, Any]:
             },
         }
 
+    # ========================================================
+    # DOCUMENT READER
+    # ========================================================
+
     if action == "document_reader":
+
         file_path = step.get("file_path")
 
         if not file_path:
@@ -55,13 +108,20 @@ def execute_step(step: dict[str, Any]) -> dict[str, Any]:
             },
         }
 
+    # ========================================================
+    # GENERAL / FINAL LLM
+    # ========================================================
+
     if action == "llm_response":
-        answer = ask_qwen([
-            {
-                "role": "user",
-                "content": step["query"],
-            }
-        ])
+
+        answer = ask_qwen(
+            [
+                {
+                    "role": "user",
+                    "content": step["query"],
+                }
+            ]
+        )
 
         return {
             "action": action,
@@ -72,4 +132,6 @@ def execute_step(step: dict[str, Any]) -> dict[str, Any]:
             },
         }
 
-    raise ValueError(f"Unsupported agent action: {action}")
+    raise ValueError(
+        f"Unsupported agent action: {action}"
+    )
