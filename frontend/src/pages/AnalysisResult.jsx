@@ -113,7 +113,7 @@ export default function AnalysisResult({ onNavigate }) {
       <NextActionPanel
         notice={noteNotice}
         onGenerateNote={() => setNoteNotice(DEMO_NOTE)}
-        onAskAgent={() => onNavigate?.('agent-chat')}
+        onAskAgent={() => onNavigate?.('home')}
       />
     </div>
   )

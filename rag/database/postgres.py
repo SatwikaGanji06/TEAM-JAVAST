@@ -3,6 +3,7 @@ import psycopg
 from pgvector.psycopg import register_vector
 from psycopg.types.json import Jsonb
 from dotenv import load_dotenv
+from backend.database.connection import get_connection
 
 # Load environment variables from .env file if it exists
 load_dotenv()
@@ -13,26 +14,12 @@ class VectorStore:
     """
 
     def __init__(self):
-        # Connection parameters from environment variables with defaults
-        self.dbname = os.getenv("DATABASE_NAME", "ai_workbench")
-        self.user = os.getenv("DATABASE_USER", "postgres")
-        self.password = os.getenv("DATABASE_PASSWORD", "")
-        self.host = os.getenv("DATABASE_HOST", "localhost")
-        self.port = os.getenv("DATABASE_PORT", "5432")
+        # Connection parameters are now handled by get_connection()
+        pass
 
     def _get_connection(self):
         """Internal helper to create a database connection."""
-        conn = psycopg.connect(
-            dbname=self.dbname,
-            user=self.user,
-            password=self.password,
-            host=self.host,
-            port=self.port,
-            autocommit=True
-        )
-        # Register the vector type with the connection
-        register_vector(conn)
-        return conn
+        return get_connection()
 
     def store_chunk(self, chunk_id: int, embedding: list[float], metadata: dict):
         """
@@ -59,15 +46,19 @@ class VectorStore:
 
         Args:
             document_id: ID of the document.
-            chunks: List of dictionaries containing 'text', 'embedding', and 'metadata'.
+            chunks: List of dictionaries containing 'text', 'embedding',
+                    'chunk_index', and 'metadata'. Falls back to
+                    metadata['chunk_index'] if the top-level field is absent.
         """
         with self._get_connection() as conn:
             with conn.cursor() as cur:
                 for chunk in chunks:
                     text = chunk["text"]
                     embedding = chunk["embedding"]
-                    metadata = chunk["metadata"]
-                    chunk_index = chunk.get("chunk_index", 0)
+                    metadata = chunk.get("metadata") or {}
+                    chunk_index = chunk.get("chunk_index")
+                    if chunk_index is None:
+                        chunk_index = metadata.get("chunk_index", 0)
 
                     if len(embedding) != 1024:
                         raise ValueError(f"Embedding must be 1024-dimensional, got {len(embedding)}")

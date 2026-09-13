@@ -1,4 +1,4 @@
-from router import route_request
+from backend.router import route_request
 
 
 if __name__ == "__main__":

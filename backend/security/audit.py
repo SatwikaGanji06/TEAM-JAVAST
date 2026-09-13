@@ -1,9 +1,10 @@
 from datetime import datetime, timezone
 from pathlib import Path
 import json
-
+from backend.database.repository import DatabaseRepository
 
 AUDIT_LOG_FILE = Path(__file__).resolve().parent / "audit.log"
+db_repo = DatabaseRepository()
 
 
 def log_event(
@@ -15,6 +16,24 @@ def log_event(
     external_call=False,
     details=None
 ):
+    # 1. Persistent Database Logging
+    try:
+        db_repo.log_audit_event(
+            user_id=user_id if isinstance(user_id, int) else None,
+            action=action,
+            entity_type=resource if resource else "SYSTEM",
+            entity_id=None, # Resource as entity_type, ID not provided in current log_event signature
+            details=details,
+            ip_address="127.0.0.1", # Default for local prototype
+            model=model,
+            success=success,
+            external_call=external_call
+        )
+    except Exception as e:
+        # Fail silently for DB audit to not block main flow, but print to stderr
+        print(f"Database audit logging failed: {e}")
+
+    # 2. Local Runtime Logging (Preserved for debugging)
     event = {
         "timestamp": datetime.now(timezone.utc).isoformat(),
         "user_id": user_id,

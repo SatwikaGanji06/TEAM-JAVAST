@@ -1,7 +1,8 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from router import api_router
+from backend.rag_router import rag_router
+from backend.router import api_router
 
 app = FastAPI(title="TEAM JAVAST AI Backend")
 
@@ -17,9 +18,10 @@ app.add_middleware(
 )
 
 app.include_router(api_router)
+app.include_router(rag_router)
 
 
 if __name__ == "__main__":
     import uvicorn
 
-    uvicorn.run("main:app", host="127.0.0.1", port=8000, reload=True)
+    uvicorn.run("backend.main:app", host="127.0.0.1", port=8000, reload=True)

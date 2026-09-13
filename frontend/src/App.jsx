@@ -1,73 +1,102 @@
-import { useState } from 'react'
+import { useCallback, useState } from 'react'
 import Sidebar from './components/Sidebar.jsx'
 import TopBar from './components/TopBar.jsx'
-import Dashboard from './pages/Dashboard.jsx'
-import NewAnalysis from './pages/NewAnalysis.jsx'
-import AgentRun from './pages/AgentRun.jsx'
-import AnalysisResult from './pages/AnalysisResult.jsx'
-import AgentChat from './pages/AgentChat.jsx'
+import Home from './pages/Home.jsx'
+import Documents from './pages/Documents.jsx'
+import KnowledgeBase from './pages/KnowledgeBase.jsx'
+import Runs from './pages/Runs.jsx'
+import RunDetail from './pages/RunDetail.jsx'
+import Models from './pages/Models.jsx'
+import Sovereignty from './pages/Sovereignty.jsx'
 import Profile from './pages/Profile.jsx'
+import NewAnalysis from './pages/NewAnalysis.jsx'
 import { PAGE_TITLES } from './navigation.js'
 
 function pageTitle(activePage) {
-  if (activePage === 'agent-runs') return 'Agent Run'
-  if (activePage === 'analysis-result') return 'Analysis Results'
-  if (activePage === 'agent-chat') return 'Ask the Agent'
-  if (activePage === 'profile') return 'Profile'
-  return PAGE_TITLES[activePage] ?? 'Dashboard'
+  return PAGE_TITLES[activePage] ?? 'Home'
 }
 
 function sidebarActiveId(activePage) {
-  if (activePage === 'analysis-result') return 'agent-runs'
+  if (activePage === 'run-detail') return 'runs'
   if (activePage === 'profile') return null
+  if (activePage === 'new-analysis') return 'home'
   return activePage
 }
 
-function PlaceholderPage({ title }) {
-  return (
-    <div className="flex flex-1 items-center justify-center">
-      <p className="text-sm text-muted">{title} will be available in a later stage.</p>
-    </div>
-  )
-}
+export default function App() {
+  const [activePage, setActivePage] = useState('home')
+  const [selectedRunId, setSelectedRunId] = useState('run-safety')
+  const [homeDraft, setHomeDraft] = useState(null)
 
-function App() {
-  const [activePage, setActivePage] = useState('dashboard')
+  const handleNavigate = useCallback((page, extras) => {
+    if (extras?.runId) {
+      setSelectedRunId(extras.runId)
+    }
+    if (extras?.homeDraft) {
+      setHomeDraft(extras.homeDraft)
+    }
+    setActivePage(page)
+  }, [])
+
+  const clearHomeDraft = useCallback(() => {
+    setHomeDraft(null)
+  }, [])
+
+  const isWorkspace = activePage === 'home'
 
   return (
     <div className="min-h-screen bg-app text-ink">
       <Sidebar
         activeId={sidebarActiveId(activePage)}
-        onNavigate={setActivePage}
+        onNavigate={handleNavigate}
       />
 
-      <div className="flex h-screen flex-col pl-[264px]">
-        <TopBar title={pageTitle(activePage)} onNavigate={setActivePage} />
+      <div className="flex h-screen min-w-0 flex-col pl-[264px]">
+        <TopBar title={pageTitle(activePage)} onNavigate={handleNavigate} />
 
         <main
-          className={`flex flex-1 flex-col px-6 py-6 ${
-            activePage === 'agent-chat' ? 'min-h-0 overflow-hidden' : 'overflow-y-auto'
+          className={`flex flex-1 flex-col px-4 py-5 md:px-6 lg:px-8 ${
+            isWorkspace ? 'min-h-0 overflow-hidden' : 'overflow-y-auto'
           }`}
         >
-          {activePage === 'dashboard' ? (
-            <Dashboard onNavigate={setActivePage} />
-          ) : activePage === 'new-analysis' ? (
-            <NewAnalysis />
-          ) : activePage === 'agent-runs' ? (
-            <AgentRun onNavigate={setActivePage} />
-          ) : activePage === 'analysis-result' ? (
-            <AnalysisResult onNavigate={setActivePage} />
-          ) : activePage === 'agent-chat' ? (
-            <AgentChat />
+          <div
+            className={
+              activePage === 'home'
+                ? 'flex min-h-0 flex-1 flex-col'
+                : 'hidden'
+            }
+            hidden={activePage !== 'home'}
+          >
+            <Home
+              onNavigate={handleNavigate}
+              draft={homeDraft}
+              onDraftConsumed={clearHomeDraft}
+            />
+          </div>
+
+          {activePage === 'documents' ? (
+            <Documents onNavigate={handleNavigate} />
+          ) : activePage === 'knowledge-base' ? (
+            <KnowledgeBase />
+          ) : activePage === 'runs' ? (
+            <Runs onNavigate={handleNavigate} />
+          ) : activePage === 'run-detail' ? (
+            <RunDetail runId={selectedRunId} onNavigate={handleNavigate} />
+          ) : activePage === 'models' ? (
+            <Models />
+          ) : activePage === 'sovereignty' ? (
+            <Sovereignty />
           ) : activePage === 'profile' ? (
             <Profile />
-          ) : (
-            <PlaceholderPage title={PAGE_TITLES[activePage]} />
+          ) : activePage === 'new-analysis' ? (
+            <NewAnalysis />
+          ) : activePage === 'home' ? null : (
+            <div className="flex flex-1 items-center justify-center">
+              <p className="text-sm text-muted">This page is not available.</p>
+            </div>
           )}
         </main>
       </div>
     </div>
   )
 }
-
-export default App

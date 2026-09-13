@@ -12,7 +12,8 @@ def chunk_text(
 
     Returns a list of dictionaries containing:
     - text
-    - metadata
+    - chunk_index (sequential, starting at 0)
+    - metadata (includes the same chunk_index)
     """
 
     if not text or not text.strip():
@@ -39,11 +40,13 @@ def chunk_text(
         if not chunk_words:
             break
 
+        chunk_index = len(chunks)
         chunks.append(
             {
                 "text": " ".join(chunk_words),
+                "chunk_index": chunk_index,
                 "metadata": {
-                    "chunk_index": len(chunks),
+                    "chunk_index": chunk_index,
                 },
             }
         )

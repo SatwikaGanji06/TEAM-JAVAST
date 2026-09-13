@@ -134,7 +134,7 @@ export default function AgentRun({ onNavigate }) {
           <div className="flex shrink-0 items-center gap-2">
             <button
               type="button"
-              onClick={() => onNavigate?.('agent-chat')}
+              onClick={() => onNavigate?.('home')}
               className="rounded-sm border border-line-strong px-4 py-2 text-[11px] font-semibold tracking-[0.14em] text-ink uppercase transition-colors hover:border-line-strong hover:bg-hover"
             >
               Ask the agent
@@ -142,7 +142,7 @@ export default function AgentRun({ onNavigate }) {
             <button
               type="button"
               onClick={() => onNavigate?.('analysis-result')}
-              className="rounded-sm bg-sky-500/90 px-4 py-2 text-[11px] font-semibold tracking-[0.14em] text-slate-950 uppercase transition-colors hover:bg-sky-400"
+              className="rounded-md bg-accent px-4 py-2 font-mono text-[11px] font-semibold tracking-[0.12em] text-app uppercase transition-colors hover:bg-accent-strong"
             >
               View results
             </button>

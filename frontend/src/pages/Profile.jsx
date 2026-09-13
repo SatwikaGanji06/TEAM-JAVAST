@@ -4,7 +4,7 @@ import { DEMO_PROFILE } from '../data/profileData.js'
 function Field({ label, children }) {
   return (
     <div>
-      <p className="text-[10px] font-medium tracking-[0.16em] text-muted uppercase">
+      <p className="text-[10px] font-medium tracking-[0.16em] text-ink-secondary uppercase">
         {label}
       </p>
       <div className="mt-1 text-sm text-ink">{children}</div>
@@ -17,8 +17,8 @@ export default function Profile() {
     <div className="mx-auto w-full max-w-3xl space-y-6 pb-8">
       <header>
         <h2 className="text-lg font-medium tracking-tight text-ink">User profile</h2>
-        <p className="mt-1 text-sm text-muted">
-          Mock workbench identity for frontend demonstration only.
+        <p className="mt-1 text-sm text-ink-secondary">
+          Local workbench account. Sign-in is not connected yet.
         </p>
       </header>
 
@@ -30,22 +30,16 @@ export default function Profile() {
             </span>
             <div>
               <p className="text-base text-ink">{DEMO_PROFILE.name}</p>
-              <p className="mt-0.5 text-sm text-ink-secondary">{DEMO_PROFILE.role}</p>
+              {DEMO_PROFILE.role ? (
+                <p className="mt-0.5 text-sm text-ink-secondary">{DEMO_PROFILE.role}</p>
+              ) : null}
             </div>
           </div>
-          <p className="text-[10px] tracking-[0.16em] text-muted uppercase">
-            {DEMO_PROFILE.label}
-          </p>
         </div>
-
-        <dl className="mt-5 grid grid-cols-2 gap-4">
-          <Field label="Department">{DEMO_PROFILE.department}</Field>
-          <Field label="Role">{DEMO_PROFILE.role}</Field>
-        </dl>
       </section>
 
       <section className="rounded-sm border border-line bg-panel px-5 py-5">
-        <h3 className="text-[11px] font-semibold tracking-[0.22em] text-muted uppercase">
+        <h3 className="text-[11px] font-semibold tracking-[0.22em] text-ink-secondary uppercase">
           Workbench access
         </h3>
         <div className="mt-3 grid grid-cols-2 gap-4">
@@ -61,7 +55,7 @@ export default function Profile() {
       </section>
 
       <section className="rounded-sm border border-line bg-panel px-5 py-5">
-        <h3 className="text-[11px] font-semibold tracking-[0.22em] text-muted uppercase">
+        <h3 className="text-[11px] font-semibold tracking-[0.22em] text-ink-secondary uppercase">
           Preferences
         </h3>
         <div className="mt-3 flex items-center justify-between gap-4">
