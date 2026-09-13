@@ -49,7 +49,9 @@ export default function Sidebar({ activeId, onNavigate }) {
         <StatusBadge tone="local" icon="lock">
           Local processing
         </StatusBadge>
-        <p className="mt-2 text-xs text-ink-secondary">System Online</p>
+        <p className="mt-2 text-xs text-ink-secondary">
+          Intended local workbench · not a live health check
+        </p>
       </div>
     </aside>
   )

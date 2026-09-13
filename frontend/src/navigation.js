@@ -2,24 +2,19 @@ export const NAV_SECTIONS = [
   {
     id: 'main',
     label: 'Main',
-    items: [{ id: 'dashboard', label: 'Dashboard' }],
+    items: [
+      { id: 'home', label: 'Home' },
+      { id: 'analysis', label: 'Analysis' },
+    ],
   },
   {
     id: 'workspace',
     label: 'Workspace',
     items: [
-      { id: 'new-analysis', label: 'New Analysis' },
       { id: 'documents', label: 'Documents' },
       { id: 'knowledge-base', label: 'Knowledge Base' },
-    ],
-  },
-  {
-    id: 'agents',
-    label: 'Agents',
-    items: [
-      { id: 'agent-runs', label: 'Agent Runs' },
-      { id: 'agent-chat', label: 'Ask the Agent' },
-      { id: 'coding-agent', label: 'Coding Agent' },
+      { id: 'runs', label: 'Runs' },
+      { id: 'generated-documents', label: 'Generated Documents' },
     ],
   },
   {
@@ -28,14 +23,24 @@ export const NAV_SECTIONS = [
     items: [
       { id: 'models', label: 'Models' },
       { id: 'sovereignty', label: 'Sovereignty' },
+      { id: 'audit', label: 'Audit' },
     ],
   },
 ]
 
-export const PAGE_TITLES = NAV_SECTIONS.flatMap((section) => section.items).reduce(
-  (titles, item) => {
-    titles[item.id] = item.label
-    return titles
-  },
-  {},
+export const PAGE_TITLES = {
+  home: 'Home',
+  analysis: 'Analysis',
+  documents: 'Documents',
+  'knowledge-base': 'Knowledge Base',
+  runs: 'Runs',
+  'generated-documents': 'Generated Documents',
+  models: 'Models',
+  sovereignty: 'Sovereignty',
+  audit: 'Audit',
+  profile: 'Profile',
+}
+
+export const PRIMARY_PAGE_IDS = NAV_SECTIONS.flatMap((section) =>
+  section.items.map((item) => item.id),
 )

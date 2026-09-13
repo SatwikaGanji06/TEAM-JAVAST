@@ -7,7 +7,6 @@ export default function TopBar({ title, onNavigate }) {
       <h1 className="text-sm font-medium tracking-wide text-ink">{title}</h1>
 
       <div className="flex items-center gap-5">
-        <StatusBadge tone="online">System online</StatusBadge>
         <StatusBadge tone="local" icon="lock">
           Local
         </StatusBadge>
