@@ -4,6 +4,7 @@ const UploadedDocumentsContext = createContext(null)
 
 export function UploadedDocumentsProvider({ children }) {
   const [documents, setDocuments] = useState([])
+  const [lastIngest, setLastIngest] = useState(null)
 
   const addUploadedDocument = useCallback((result) => {
     if (!result || typeof result.document_id !== 'number') return
@@ -22,9 +23,14 @@ export function UploadedDocumentsProvider({ children }) {
     })
   }, [])
 
+  const recordIngest = useCallback((result) => {
+    if (!result) return
+    setLastIngest(result)
+  }, [])
+
   const value = useMemo(
-    () => ({ documents, addUploadedDocument }),
-    [documents, addUploadedDocument],
+    () => ({ documents, addUploadedDocument, lastIngest, recordIngest }),
+    [documents, addUploadedDocument, lastIngest, recordIngest],
   )
 
   return (

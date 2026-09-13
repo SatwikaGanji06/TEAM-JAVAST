@@ -1,9 +1,16 @@
 import { useEffect, useRef, useState } from 'react'
 import ChatMessage from '../components/chat/ChatMessage.jsx'
 import ChatInput from '../components/chat/ChatInput.jsx'
+import SuggestedPrompts from '../components/chat/SuggestedPrompts.jsx'
 import { queryRAG } from '../api/ragApi.js'
 import { fileTypeLabel } from '../components/analysis/FileUploader.jsx'
 import { useUploadedDocuments } from '../session/UploadedDocumentsContext.jsx'
+
+const STARTERS = [
+  'Summarize the indexed documents',
+  'What risks are described?',
+  'List the key findings',
+]
 
 export default function Analysis() {
   const { addUploadedDocument } = useUploadedDocuments()
@@ -93,13 +100,15 @@ export default function Analysis() {
     }
   }
 
+  const showWelcome = messages.length === 0 && !isThinking
+
   return (
     <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
       <header className="mb-4 shrink-0">
         <h2 className="text-lg font-medium tracking-tight text-ink">Analysis</h2>
         <p className="mt-1 text-sm text-muted">
-          Ask questions against indexed documents. Attach a PDF or TXT file to
-          upload it through the existing document API before you send.
+          Conversational review of indexed documents. Attach a PDF or TXT file
+          to index it, then ask a question.
         </p>
       </header>
 
@@ -107,10 +116,26 @@ export default function Analysis() {
         ref={listRef}
         className="min-h-0 min-w-0 flex-1 space-y-3 overflow-y-auto pr-1"
       >
-        {messages.length === 0 && !isThinking ? (
-          <p className="text-sm text-ink-secondary">
-            Messages will appear here after you send a question.
-          </p>
+        {showWelcome ? (
+          <div className="flex min-h-full flex-col items-center justify-center px-4 py-10 text-center">
+            <p className="text-[11px] font-semibold tracking-[0.22em] text-muted uppercase">
+              Local analysis
+            </p>
+            <h3 className="mt-3 max-w-md text-xl font-medium tracking-tight text-ink">
+              Ask about the documents you have indexed
+            </h3>
+            <p className="mt-2 max-w-md text-sm leading-6 text-ink-secondary">
+              Answers come from retrieved passages in the local index, then the
+              local model. Attach a file below if you need to index one first.
+            </p>
+            <div className="mt-6">
+              <SuggestedPrompts
+                prompts={STARTERS}
+                disabled={isThinking}
+                onSelect={sendQuestion}
+              />
+            </div>
+          </div>
         ) : null}
 
         {messages.map((message) => (

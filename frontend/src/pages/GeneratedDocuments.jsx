@@ -1,20 +1,17 @@
 import PageHeader from '../components/PageHeader.jsx'
+import EmptyPanel from '../components/EmptyPanel.jsx'
 
 export default function GeneratedDocuments() {
   return (
-    <div className="mx-auto w-full max-w-4xl pb-8">
+    <div className="mx-auto w-full max-w-4xl pb-10">
       <PageHeader
         title="Generated Documents"
-        subtitle="Approval notes and generated files are not available. The current backend does not expose a document-generation API."
+        subtitle="Approval notes and exported files will appear here when generation is available."
       />
-
-      <div className="rounded-sm border border-dashed border-line-strong px-4 py-10 text-center">
-        <p className="text-sm text-ink">No generated documents yet.</p>
-        <p className="mt-1 text-xs text-muted">
-          Nothing is listed here because no generation or approval-note endpoint
-          is connected.
-        </p>
-      </div>
+      <EmptyPanel title="No generated documents yet">
+        The local backend does not expose an approval-note or document-generation
+        endpoint.
+      </EmptyPanel>
     </div>
   )
 }

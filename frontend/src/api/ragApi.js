@@ -100,6 +100,18 @@ export async function uploadRAGDocument(file) {
   }
 }
 
+export async function pingBackend() {
+  let response
+
+  try {
+    response = await fetch(`${API_BASE_URL}/openapi.json`)
+  } catch {
+    return false
+  }
+
+  return Boolean(response?.ok)
+}
+
 export async function ingestRAGDocuments() {
   let response
 
@@ -122,24 +134,3 @@ export async function ingestRAGDocuments() {
   }
 }
 
-export async function fetchOpenApiPaths() {
-  let response
-
-  try {
-    response = await fetch(`${API_BASE_URL}/openapi.json`)
-  } catch {
-    throw backendUnavailableError()
-  }
-
-  if (!response.ok) {
-    throw backendUnavailableError()
-  }
-
-  try {
-    const spec = await response.json()
-    const paths = spec?.paths && typeof spec.paths === 'object' ? spec.paths : {}
-    return Object.keys(paths).sort()
-  } catch {
-    throw backendUnavailableError()
-  }
-}

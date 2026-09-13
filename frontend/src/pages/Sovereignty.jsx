@@ -6,35 +6,33 @@ const SOVEREIGNTY_ITEMS = [
     id: 'local-processing',
     title: 'Local processing',
     detail:
-      'The browser sends RAG upload and query requests to the local FastAPI backend configured for this workbench.',
+      'Analysis, upload, and search requests stay on the local workbench backend. Cloud AI providers are not wired into this client.',
   },
   {
     id: 'local-models',
     title: 'Local models',
     detail:
-      'The backend is designed to use local Qwen models through Ollama. This page does not verify that those processes are running.',
+      'Retrieval uses the configured Qwen embedding model. Answers use the configured Qwen language model through Ollama.',
   },
   {
     id: 'network-policy',
     title: 'Network policy',
     detail:
-      'The backend includes a local-host network policy for model calls. That is product configuration, not a live security scan.',
+      'The backend is designed to allow model calls only to approved local hosts. This page describes that policy; it is not a live scan.',
   },
 ]
 
 export default function Sovereignty() {
   return (
-    <div className="mx-auto w-full max-w-3xl pb-8">
+    <div className="mx-auto w-full max-w-3xl pb-10">
       <PageHeader
         title="Sovereignty"
-        subtitle="How this workbench is meant to keep processing local. This is configuration and intent, not live network status."
-      />
-
-      <div className="mb-6">
+        subtitle="How this workbench is intended to keep document analysis on-machine."
+      >
         <StatusBadge tone="local" icon="lock">
-          Local processing intended
+          Local processing
         </StatusBadge>
-      </div>
+      </PageHeader>
 
       <ul className="space-y-3">
         {SOVEREIGNTY_ITEMS.map((item) => (

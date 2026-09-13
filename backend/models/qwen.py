@@ -1,6 +1,9 @@
 import requests
 
-from security.network import check_network_request
+try:
+    from backend.security.network import check_network_request
+except ImportError:
+    from security.network import check_network_request
 
 
 OLLAMA_URL = "http://localhost:11434/api/chat"

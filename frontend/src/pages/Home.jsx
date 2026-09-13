@@ -1,51 +1,56 @@
 import { useEffect, useState } from 'react'
 import PageHeader from '../components/PageHeader.jsx'
-import { API_BASE_URL, fetchOpenApiPaths } from '../api/ragApi.js'
+import QuickActionCard from '../components/QuickActionCard.jsx'
+import StatusBadge from '../components/StatusBadge.jsx'
+import { pingBackend } from '../api/ragApi.js'
+import { useUploadedDocuments } from '../session/UploadedDocumentsContext.jsx'
+
+const ACTIONS = [
+  {
+    id: 'analysis',
+    icon: 'plus',
+    title: 'Start analysis',
+    description: 'Ask the local model about indexed documents.',
+  },
+  {
+    id: 'documents',
+    icon: 'document',
+    title: 'Add documents',
+    description: 'Upload PDF or TXT files to index for retrieval.',
+  },
+  {
+    id: 'knowledge-base',
+    icon: 'search',
+    title: 'Search knowledge',
+    description: 'Run a retrieval query across the indexed corpus.',
+  },
+]
 
 export default function Home({ onNavigate }) {
-  const [paths, setPaths] = useState([])
-  const [error, setError] = useState('')
-  const [loading, setLoading] = useState(true)
+  const { documents, lastIngest } = useUploadedDocuments()
+  const [backendReady, setBackendReady] = useState(null)
 
   useEffect(() => {
     let cancelled = false
 
-    async function load() {
-      setLoading(true)
-      setError('')
+    pingBackend().then((ready) => {
+      if (!cancelled) setBackendReady(ready)
+    })
 
-      try {
-        const nextPaths = await fetchOpenApiPaths()
-        if (!cancelled) {
-          setPaths(nextPaths)
-        }
-      } catch (loadError) {
-        if (!cancelled) {
-          setPaths([])
-          setError(
-            loadError instanceof Error && loadError.message.trim()
-              ? loadError.message
-              : 'Unable to reach the local AI backend.',
-          )
-        }
-      } finally {
-        if (!cancelled) {
-          setLoading(false)
-        }
-      }
-    }
-
-    load()
     return () => {
       cancelled = true
     }
   }, [])
 
+  const indexedChunks = documents.reduce((total, document) => {
+    return total + (typeof document.chunks_created === 'number' ? document.chunks_created : 0)
+  }, 0)
+
   return (
-    <div className="mx-auto w-full max-w-4xl pb-8">
+    <div className="mx-auto w-full max-w-5xl pb-10">
       <PageHeader
         title="Home"
-        subtitle="Operational overview of the local backend. This page does not run analysis."
+        subtitle="Analyze industrial documents with local retrieval and generation. Start a conversation, index files, or search the corpus."
       >
         <button
           type="button"
@@ -56,43 +61,99 @@ export default function Home({ onNavigate }) {
         </button>
       </PageHeader>
 
-      <section className="rounded-sm border border-line bg-panel px-4 py-4">
-        <h3 className="text-[11px] font-semibold tracking-[0.22em] text-muted uppercase">
-          Backend
-        </h3>
-        <p className="mt-2 text-sm text-ink">{API_BASE_URL}</p>
-        <p className="mt-1 text-xs text-muted">
-          Configured frontend origin. Status below is from GET /openapi.json.
-        </p>
-
-        {loading ? (
-          <p className="mt-4 text-sm text-ink-secondary">Checking backend…</p>
-        ) : error ? (
-          <p className="mt-4 text-sm text-warning">{error}</p>
-        ) : (
-          <div className="mt-4">
-            <p className="text-sm text-ink">Backend responded.</p>
-            {paths.length === 0 ? (
-              <p className="mt-1 text-xs text-muted">
-                The OpenAPI document did not list any paths.
-              </p>
+      <section className="grid gap-3 sm:grid-cols-3">
+        <article className="rounded-sm border border-line bg-panel px-4 py-4">
+          <p className="text-[11px] tracking-[0.16em] text-muted uppercase">Session uploads</p>
+          <p className="mt-2 text-2xl font-medium text-ink">{documents.length}</p>
+          <p className="mt-1 text-xs text-ink-secondary">
+            Confirmed in this browser session
+          </p>
+        </article>
+        <article className="rounded-sm border border-line bg-panel px-4 py-4">
+          <p className="text-[11px] tracking-[0.16em] text-muted uppercase">Indexed chunks</p>
+          <p className="mt-2 text-2xl font-medium text-ink">{indexedChunks}</p>
+          <p className="mt-1 text-xs text-ink-secondary">
+            From uploads confirmed this session
+          </p>
+        </article>
+        <article className="rounded-sm border border-line bg-panel px-4 py-4">
+          <p className="text-[11px] tracking-[0.16em] text-muted uppercase">Local backend</p>
+          <div className="mt-2">
+            {backendReady == null ? (
+              <p className="text-sm text-ink-secondary">Checking…</p>
+            ) : backendReady ? (
+              <StatusBadge tone="online">Reachable</StatusBadge>
             ) : (
-              <ul className="mt-3 space-y-1.5">
-                {paths.map((path) => (
-                  <li key={path} className="text-sm text-ink-secondary">
-                    {path}
-                  </li>
-                ))}
-              </ul>
+              <p className="text-sm text-warning">Unavailable</p>
             )}
           </div>
+          <p className="mt-1 text-xs text-ink-secondary">
+            Workbench API on this machine
+          </p>
+        </article>
+      </section>
+
+      <section className="mt-8">
+        <h3 className="mb-3 text-[11px] font-semibold tracking-[0.22em] text-muted uppercase">
+          Workspace
+        </h3>
+        <div className="grid gap-3 md:grid-cols-3">
+          {ACTIONS.map((action) => (
+            <QuickActionCard
+              key={action.id}
+              action={action}
+              onSelect={onNavigate}
+            />
+          ))}
+        </div>
+      </section>
+
+      <section className="mt-8">
+        <div className="mb-3 flex items-center justify-between gap-3">
+          <h3 className="text-[11px] font-semibold tracking-[0.22em] text-muted uppercase">
+            Recent session documents
+          </h3>
+          <button
+            type="button"
+            onClick={() => onNavigate?.('documents')}
+            className="text-[11px] tracking-[0.12em] text-ink-secondary uppercase hover:text-ink"
+          >
+            Manage
+          </button>
+        </div>
+        {documents.length === 0 ? (
+          <p className="rounded-sm border border-line bg-panel px-4 py-4 text-sm text-ink-secondary">
+            No files have been uploaded in this session yet.
+          </p>
+        ) : (
+          <ul className="divide-y divide-line rounded-sm border border-line bg-panel">
+            {documents.slice(0, 5).map((document) => (
+              <li key={document.document_id} className="px-4 py-3">
+                <p className="truncate text-sm text-ink">{document.file_name}</p>
+                <p className="mt-1 text-xs text-muted">
+                  {typeof document.chunks_created === 'number'
+                    ? `${document.chunks_created} chunks indexed`
+                    : 'Upload confirmed'}
+                </p>
+              </li>
+            ))}
+          </ul>
         )}
       </section>
 
-      <p className="mt-6 text-sm leading-6 text-ink-secondary">
-        Document counts, run history, and findings are not shown here because
-        the backend does not expose those APIs.
-      </p>
+      {lastIngest ? (
+        <section className="mt-8 rounded-sm border border-line bg-panel px-4 py-4">
+          <h3 className="text-[11px] font-semibold tracking-[0.22em] text-muted uppercase">
+            Last server index
+          </h3>
+          <p className="mt-2 text-sm text-ink">
+            {lastIngest.documents_processed} documents · {lastIngest.chunks_created} chunks
+          </p>
+          <p className="mt-1 text-xs text-ink-secondary">
+            Result of the most recent index of stored server files.
+          </p>
+        </section>
+      ) : null}
     </div>
   )
 }
