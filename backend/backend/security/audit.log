@@ -1,0 +1,3 @@
+{"timestamp": "2026-09-12T08:23:33.424536+00:00", "user_id": null, "action": "MODEL_SELECTED", "model": "qwen3:4b", "resource": "text", "success": true, "external_call": false, "details": "Local model selected by router"}
+{"timestamp": "2026-09-12T08:24:19.153382+00:00", "user_id": null, "action": "MODEL_SELECTED", "model": "qwen3:4b", "resource": "text", "success": true, "external_call": false, "details": "Local model selected by router"}
+{"timestamp": "2026-09-12T08:25:08.210392+00:00", "user_id": null, "action": "MODEL_INFERENCE", "model": "qwen3:4b", "resource": "chat", "success": true, "external_call": false, "details": "Local model inference completed"}

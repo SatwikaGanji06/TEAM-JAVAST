@@ -8,6 +8,10 @@ from security.audit import log_event
 api_router = APIRouter()
 
 
+# Temporary in-memory conversation history
+conversation_history = []
+
+
 class ChatRequest(BaseModel):
     message: str = Field(min_length=1)
 
@@ -50,7 +54,6 @@ def route_request(
     try:
         model = get_model(request_type)
 
-        # Audit model selection
         log_event(
             user_id=user_id,
             action="MODEL_SELECTED",
@@ -63,10 +66,8 @@ def route_request(
 
         if request_type == "text":
 
-            # Run local Qwen model
             response = ask_qwen(messages)
 
-            # Audit successful inference
             log_event(
                 user_id=user_id,
                 action="MODEL_INFERENCE",
@@ -86,7 +87,6 @@ def route_request(
 
         elif request_type == "embedding":
 
-            # RAG module will call the embedding model
             return {
                 "model": model["name"],
                 "model_type": model["type"],
@@ -95,7 +95,6 @@ def route_request(
 
     except Exception as e:
 
-        # Audit failed request
         log_event(
             user_id=user_id,
             action="REQUEST_FAILED",
@@ -111,17 +110,38 @@ def route_request(
 
 @api_router.post("/api/chat", response_model=ChatResponse)
 def chat(payload: ChatRequest) -> ChatResponse:
+
     message = payload.message.strip()
 
     if not message:
-        raise HTTPException(status_code=400, detail="Message is required.")
+        raise HTTPException(
+            status_code=400,
+            detail="Message is required."
+        )
 
     try:
+
+        # Add user's message to conversation history
+        conversation_history.append({
+            "role": "user",
+            "content": message
+        })
+
+        # Send entire conversation to Qwen
         result = route_request(
-            messages=[{"role": "user", "content": message}],
+            messages=conversation_history,
             request_type="text",
         )
-        return ChatResponse(response=result["response"])
+
+        # Add Qwen's response to conversation history
+        conversation_history.append({
+            "role": "assistant",
+            "content": result["response"]
+        })
+
+        return ChatResponse(
+            response=result["response"]
+        )
 
     except HTTPException:
         raise
