@@ -12,13 +12,15 @@ const STARTERS = [
   'List the key findings',
 ]
 
-export default function Analysis() {
+export default function Analysis({ isActive = true }) {
   const { addUploadedDocument } = useUploadedDocuments()
   const [messages, setMessages] = useState([])
   const [isThinking, setIsThinking] = useState(false)
   const [file, setFile] = useState(null)
   const [uploadResult, setUploadResult] = useState(null)
   const listRef = useRef(null)
+  const activeRef = useRef(isActive)
+  activeRef.current = isActive
 
   useEffect(() => {
     const node = listRef.current
@@ -40,7 +42,7 @@ export default function Analysis() {
   }
 
   async function sendQuestion(question) {
-    if (isThinking) return
+    if (!activeRef.current || isThinking) return
 
     const text = (question || '').trim()
     if (!text) return
@@ -131,7 +133,7 @@ export default function Analysis() {
             <div className="mt-6">
               <SuggestedPrompts
                 prompts={STARTERS}
-                disabled={isThinking}
+                disabled={!isActive || isThinking}
                 onSelect={sendQuestion}
               />
             </div>
@@ -151,7 +153,7 @@ export default function Analysis() {
 
       <div className="mt-3 shrink-0 border-t border-line bg-app pt-3">
         <ChatInput
-          disabled={isThinking}
+          disabled={!isActive || isThinking}
           onSend={sendQuestion}
           file={file}
           onFileChange={handleFileChange}

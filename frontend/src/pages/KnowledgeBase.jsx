@@ -53,7 +53,11 @@ export default function KnowledgeBase() {
         subtitle="Search the indexed document corpus. Results include the model answer and the retrieved source passages."
       />
 
-      <form onSubmit={search} className="rounded-sm border border-line bg-panel p-4">
+      <form
+        onSubmit={search}
+        autoComplete="off"
+        className="rounded-sm border border-line bg-panel p-4"
+      >
         <label className="block">
           <span className="mb-2 block text-xs text-ink-secondary">Search</span>
           <input
