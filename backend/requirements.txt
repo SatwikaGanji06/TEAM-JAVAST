@@ -5,3 +5,4 @@ psycopg[binary]
 pgvector
 python-dotenv
 python-multipart
+python-docx

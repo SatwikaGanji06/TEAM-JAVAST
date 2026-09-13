@@ -5,11 +5,12 @@ def create_plan(query: str) -> dict[str, Any]:
     """
     Create a deterministic execution plan.
 
-    The planner identifies whether the request needs:
-    - document reading,
+    The planner decides whether the request needs:
     - internal RAG search,
     - calculation,
     - or normal local LLM response.
+
+    The final answer is always synthesized by Qwen3:4B.
     """
 
     question = (query or "").strip()
@@ -27,36 +28,51 @@ def create_plan(query: str) -> dict[str, Any]:
         "deviation",
         "difference",
         "ratio",
-    ]
-
-    document_keywords = [
-        "read this document",
-        "inspection document",
-        "read the document",
-        "extract from the document",
-        "extract measurements",
-        "extract the measurements",
-        "inspection file",
-        "uploaded file",
+        "average",
+        "sum",
+        "subtract",
+        "multiply",
+        "divide",
     ]
 
     knowledge_keywords = [
         "document",
+        "documents",
         "report",
+        "reports",
         "sop",
         "manual",
         "procedure",
         "policy",
+        "inspection",
         "inspection report",
         "inspection findings",
+        "findings",
+        "measurement",
+        "measurements",
         "operating limit",
         "acceptable limit",
+        "limit",
         "according to the document",
         "according to the report",
         "according to the sop",
         "according to the manual",
+        "in the document",
         "in the report",
         "in the sop",
+        "in the manual",
+        "uploaded document",
+        "uploaded file",
+        "uploaded report",
+        "summarize the document",
+        "summarize this document",
+        "summarize the report",
+        "analyze the document",
+        "analyse the document",
+        "analyze this document",
+        "analyse this document",
+        "document summary",
+        "document analysis",
         "compare with",
     ]
 
@@ -65,28 +81,12 @@ def create_plan(query: str) -> dict[str, Any]:
         for keyword in calculation_keywords
     )
 
-    requires_document = any(
-        keyword in lowered
-        for keyword in document_keywords
-    )
-
     requires_rag = any(
         keyword in lowered
         for keyword in knowledge_keywords
     )
 
     steps = []
-
-    if requires_document:
-        steps.append({
-            "step": len(steps) + 1,
-            "action": "document_reader",
-            "description": (
-                "Read the supplied local document "
-                "and extract its text."
-            ),
-            "query": question,
-        })
 
     if requires_rag:
         steps.append({

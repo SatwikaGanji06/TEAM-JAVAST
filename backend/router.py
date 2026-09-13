@@ -32,6 +32,7 @@ class ChatRequest(BaseModel):
 
 class ChatResponse(BaseModel):
     response: str
+    sources: list[dict] = Field(default_factory=list)
 
 
 class ApprovalNoteRequest(BaseModel):
@@ -43,7 +44,6 @@ class ApprovalNoteRequest(BaseModel):
 # ============================================================
 
 MODEL_REGISTRY = {
-    # Main text / reasoning model
     "text": {
         "name": "qwen3:4b",
         "type": "llm",
@@ -51,7 +51,6 @@ MODEL_REGISTRY = {
         "local": True,
     },
 
-    # Embedding model used by RAG
     "embedding": {
         "name": "qwen3-embedding:0.6b",
         "type": "embedding",
@@ -93,10 +92,6 @@ def route_request(
             details="Local model selected by router",
         )
 
-        # ----------------------------------------------------
-        # TEXT MODEL
-        # ----------------------------------------------------
-
         if request_type == "text":
 
             response = ask_qwen(messages)
@@ -118,11 +113,7 @@ def route_request(
                 "is_local": model["local"],
             }
 
-        # ----------------------------------------------------
-        # EMBEDDING MODEL
-        # ----------------------------------------------------
-
-        elif request_type == "embedding":
+        if request_type == "embedding":
 
             return {
                 "model": model["name"],
@@ -154,36 +145,42 @@ def route_request(
 
 def _build_agent_response(
     agent_result: dict,
-) -> str:
+) -> tuple[str, list[dict]]:
     """
-    Convert the agent execution result
-    into the final response text.
+    Extract the final Qwen response and RAG sources.
     """
 
     results = agent_result.get("results", [])
 
-    if not results:
-        return "The agent could not produce a result."
+    final_answer = None
+    sources = []
 
-    # For the current Phase-1 agent,
-    # use the first execution result.
-    first_result = results[0]
+    for item in results:
+        if not isinstance(item, dict):
+            continue
 
-    result = first_result.get("result", {})
+        result = item.get("result")
 
-    if isinstance(result, dict):
+        if not isinstance(result, dict):
+            continue
+
         answer = result.get("answer")
 
         if answer:
-            return answer
+            final_answer = answer
 
-    if isinstance(result, str):
-        return result
+        item_sources = result.get("sources", [])
 
-    return (
-        "The agent completed the requested operation "
-        "but produced no response."
-    )
+        if isinstance(item_sources, list):
+            sources.extend(item_sources)
+
+    if not final_answer:
+        final_answer = (
+            "The agent completed the requested operation "
+            "but produced no response."
+        )
+
+    return final_answer, sources
 
 
 # ============================================================
@@ -209,7 +206,6 @@ def chat(payload: ChatRequest) -> ChatResponse:
 
     try:
 
-        # 1. Ensure conversation exists
         if conv_id is None:
 
             conv_id = db_repo.create_conversation(
@@ -220,22 +216,20 @@ def chat(payload: ChatRequest) -> ChatResponse:
                 ),
             )
 
-        # 2. Store user message
         db_repo.add_message(
             conversation_id=conv_id,
             sender="user",
             text=message_text,
         )
 
-        # 3. Run the agent
+        # Main entry point:
+        # planner -> RAG/tools -> Qwen3:4B -> final answer
         agent_result = run_agent(message_text)
 
-        # 4. Extract final response
-        response_text = _build_agent_response(
+        response_text, sources = _build_agent_response(
             agent_result
         )
 
-        # 5. Store assistant message
         db_repo.add_message(
             conversation_id=conv_id,
             sender="assistant",
@@ -243,7 +237,8 @@ def chat(payload: ChatRequest) -> ChatResponse:
         )
 
         return ChatResponse(
-            response=response_text
+            response=response_text,
+            sources=sources,
         )
 
     except HTTPException:
@@ -261,7 +256,7 @@ def chat(payload: ChatRequest) -> ChatResponse:
 
 
 # ============================================================
-# APPROVAL NOTE ENDPOINT
+# APPROVAL NOTE / DOCX
 # ============================================================
 
 @api_router.post("/api/approval-note")
@@ -269,7 +264,7 @@ def generate_approval_note_endpoint(
     payload: ApprovalNoteRequest,
 ):
     """
-    Run the Phase-1 agent workflow and generate
+    Run the same agent workflow and generate
     a review-ready approval note DOCX.
     """
 
@@ -283,23 +278,19 @@ def generate_approval_note_endpoint(
 
     try:
 
-        # 1. Run the same agent workflow
         agent_result = run_agent(message_text)
 
-        # 2. Convert agent output into
-        #    structured approval-note data
         note_data = build_approval_note_data(
             agent_result
         )
 
-        # 3. Local generated-document directory
         output_dir = Path("backend") / "generated"
+        output_dir.mkdir(parents=True, exist_ok=True)
 
         output_path = (
             output_dir / "approval_note.docx"
         )
 
-        # 4. Generate DOCX
         generate_approval_note(
             output_path=output_path,
             title=note_data["title"],
@@ -313,7 +304,6 @@ def generate_approval_note_endpoint(
             evidence=note_data["evidence"],
         )
 
-        # 5. Return generated DOCX
         return FileResponse(
             path=output_path,
             media_type=(
