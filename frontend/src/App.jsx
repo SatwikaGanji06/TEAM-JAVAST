@@ -1,102 +1,116 @@
-import { useCallback, useState } from 'react'
+﻿import { useCallback, useState } from 'react'
 import Sidebar from './components/Sidebar.jsx'
 import TopBar from './components/TopBar.jsx'
 import Home from './pages/Home.jsx'
+import GeneralChat from './pages/GeneralChat.jsx'
+import Analysis from './pages/Analysis.jsx'
 import Documents from './pages/Documents.jsx'
 import KnowledgeBase from './pages/KnowledgeBase.jsx'
 import Runs from './pages/Runs.jsx'
-import RunDetail from './pages/RunDetail.jsx'
+import GeneratedDocuments from './pages/GeneratedDocuments.jsx'
 import Models from './pages/Models.jsx'
 import Sovereignty from './pages/Sovereignty.jsx'
+import Audit from './pages/Audit.jsx'
 import Profile from './pages/Profile.jsx'
-import NewAnalysis from './pages/NewAnalysis.jsx'
 import { PAGE_TITLES } from './navigation.js'
+import { UploadedDocumentsProvider } from './session/UploadedDocumentsContext.jsx'
+import { ChatProvider } from './session/ChatContext.jsx'
 
 function pageTitle(activePage) {
   return PAGE_TITLES[activePage] ?? 'Home'
 }
 
 function sidebarActiveId(activePage) {
-  if (activePage === 'run-detail') return 'runs'
   if (activePage === 'profile') return null
-  if (activePage === 'new-analysis') return 'home'
   return activePage
 }
 
-export default function App() {
+function renderWorkspacePage(activePage, onNavigate) {
+  switch (activePage) {
+    case 'analysis':
+      return null
+    case 'general-chat':
+      return <GeneralChat />
+    case 'home':
+      return <Home onNavigate={onNavigate} />
+    case 'documents':
+      return <Documents />
+    case 'knowledge-base':
+      return <KnowledgeBase />
+    case 'runs':
+      return <Runs />
+    case 'generated-documents':
+      return <GeneratedDocuments />
+    case 'models':
+      return <Models />
+    case 'sovereignty':
+      return <Sovereignty />
+    case 'audit':
+      return <Audit />
+    case 'profile':
+      return <Profile />
+    default:
+      return (
+        <div className="flex flex-1 items-center justify-center">
+          <p className="text-sm text-muted">This page is not available.</p>
+        </div>
+      )
+  }
+}
+
+function App() {
   const [activePage, setActivePage] = useState('home')
-  const [selectedRunId, setSelectedRunId] = useState('run-safety')
-  const [homeDraft, setHomeDraft] = useState(null)
+  const isAnalysis = activePage === 'analysis'
 
-  const handleNavigate = useCallback((page, extras) => {
-    if (extras?.runId) {
-      setSelectedRunId(extras.runId)
-    }
-    if (extras?.homeDraft) {
-      setHomeDraft(extras.homeDraft)
-    }
-    setActivePage(page)
+  const handleNavigate = useCallback((pageId) => {
+    if (typeof pageId !== 'string') return
+    if (!(pageId in PAGE_TITLES)) return
+    setActivePage(pageId)
   }, [])
-
-  const clearHomeDraft = useCallback(() => {
-    setHomeDraft(null)
-  }, [])
-
-  const isWorkspace = activePage === 'home'
 
   return (
-    <div className="min-h-screen bg-app text-ink">
-      <Sidebar
-        activeId={sidebarActiveId(activePage)}
-        onNavigate={handleNavigate}
-      />
+    <UploadedDocumentsProvider>
+      <ChatProvider>
+        <div className="min-h-screen bg-app text-ink">
+          <Sidebar
+            activeId={sidebarActiveId(activePage)}
+            onNavigate={handleNavigate}
+          />
 
-      <div className="flex h-screen min-w-0 flex-col pl-[264px]">
-        <TopBar title={pageTitle(activePage)} onNavigate={handleNavigate} />
-
-        <main
-          className={`flex flex-1 flex-col px-4 py-5 md:px-6 lg:px-8 ${
-            isWorkspace ? 'min-h-0 overflow-hidden' : 'overflow-y-auto'
-          }`}
-        >
-          <div
-            className={
-              activePage === 'home'
-                ? 'flex min-h-0 flex-1 flex-col'
-                : 'hidden'
-            }
-            hidden={activePage !== 'home'}
-          >
-            <Home
+          <div className="flex h-screen min-w-0 flex-col pl-[264px]">
+            <TopBar
+              title={pageTitle(activePage)}
               onNavigate={handleNavigate}
-              draft={homeDraft}
-              onDraftConsumed={clearHomeDraft}
             />
-          </div>
 
-          {activePage === 'documents' ? (
-            <Documents onNavigate={handleNavigate} />
-          ) : activePage === 'knowledge-base' ? (
-            <KnowledgeBase />
-          ) : activePage === 'runs' ? (
-            <Runs onNavigate={handleNavigate} />
-          ) : activePage === 'run-detail' ? (
-            <RunDetail runId={selectedRunId} onNavigate={handleNavigate} />
-          ) : activePage === 'models' ? (
-            <Models />
-          ) : activePage === 'sovereignty' ? (
-            <Sovereignty />
-          ) : activePage === 'profile' ? (
-            <Profile />
-          ) : activePage === 'new-analysis' ? (
-            <NewAnalysis />
-          ) : activePage === 'home' ? null : (
-            <div className="flex flex-1 items-center justify-center">
-              <p className="text-sm text-muted">This page is not available.</p>
-            </div>
-          )}
-        </main>
-      </div>
-    </div>
+            <main
+              className={`flex min-h-0 min-w-0 flex-1 flex-col px-6 ${
+                isAnalysis
+                  ? 'overflow-hidden py-4'
+                  : 'overflow-y-auto py-6'
+              }`}
+            >
+              <div
+                className={
+                  isAnalysis
+                    ? 'flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden'
+                    : 'hidden'
+                }
+                aria-hidden={!isAnalysis}
+                {...(isAnalysis ? {} : { inert: true })}
+              >
+                <Analysis isActive={isAnalysis} />
+              </div>
+
+              {isAnalysis
+                ? null
+                : renderWorkspacePage(activePage, handleNavigate)}
+            </main>
+          </div>
+        </div>
+      </ChatProvider>
+    </UploadedDocumentsProvider>
   )
 }
+
+export default App

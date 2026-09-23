@@ -21,6 +21,8 @@ INGESTION_FAILED = "Unable to index the document."
 
 class RagQueryRequest(BaseModel):
     query: str = Field(min_length=1)
+    document_ids: list[int] | None = Field(default=None)
+
 
 
 class RagSource(BaseModel):
@@ -96,11 +98,12 @@ def rag_query(payload: RagQueryRequest) -> RagQueryResponse:
         raise HTTPException(status_code=400, detail="Query is required.")
 
     try:
-        result = query_rag(query)
+        result = query_rag(query, document_ids=payload.document_ids)
         return RagQueryResponse(
             answer=result["answer"],
             sources=result["sources"],
         )
+
 
     except HTTPException:
         raise
@@ -141,7 +144,17 @@ def rag_query(payload: RagQueryRequest) -> RagQueryResponse:
         )
 
 
+@rag_router.get("/api/documents")
+def get_documents():
+    try:
+        from backend.services.rag_service import get_document_catalog
+        return get_document_catalog()
+    except Exception:
+        logger.exception("Failed to fetch document catalog")
+        raise HTTPException(status_code=500, detail="Unable to retrieve document catalog.")
+
 @rag_router.post("/api/rag/upload", response_model=RagUploadResponse)
+
 def rag_upload(file: UploadFile | None = File(default=None)) -> RagUploadResponse:
     if file is None or not file.filename:
         raise HTTPException(status_code=400, detail="A file is required.")

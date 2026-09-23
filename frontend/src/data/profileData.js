@@ -12,8 +12,8 @@ export const DEMO_PROFILE = {
   role: '',
   department: '',
   status: 'LOCAL',
-  session: 'LOCAL WORKBENCH',
-  access: 'Local AI Workbench',
+  session: 'LOCAL LOKAI',
+  access: 'Local LOKAI',
   label: '',
   isAuthenticated: false,
 }

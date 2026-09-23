@@ -106,3 +106,168 @@ class DatabaseRepository:
                 cur.execute("SELECT * FROM audit_logs ORDER BY created_at DESC LIMIT %s", (limit,))
                 cols = [desc[0] for desc in cur.description]
                 return [dict(zip(cols, row)) for row in cur.fetchall()]
+
+    # --- Agent Run Management ---
+
+    def create_run(
+        self,
+        user_id: Optional[int],
+        query: str,
+        task: str,
+        status: str,
+        document_ids: list[int] | None,
+        plan: list,
+        results: list,
+        verification: dict,
+    ) -> int:
+        query_sql = """
+            INSERT INTO runs (
+                user_id,
+                query,
+                task,
+                status,
+                document_ids,
+                plan,
+                results,
+                verification
+            )
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+            RETURNING run_id
+        """
+
+        with get_connection() as conn:
+            with conn.cursor() as cur:
+                cur.execute(
+                    query_sql,
+                    (
+                        user_id,
+                        query,
+                        task,
+                        status,
+                        document_ids,
+                        Jsonb(plan),
+                        Jsonb(results),
+                        Jsonb(verification),
+                    ),
+                )
+                run_id = cur.fetchone()[0]
+            conn.commit()
+
+        return run_id
+
+    def get_runs(self, limit: int = 100) -> List[Dict[str, Any]]:
+        query_sql = """
+            SELECT
+                run_id,
+                user_id,
+                query,
+                task,
+                status,
+                document_ids,
+                plan,
+                results,
+                verification,
+                created_at
+            FROM runs
+            ORDER BY created_at DESC
+            LIMIT %s
+        """
+
+        with get_connection() as conn:
+            with conn.cursor() as cur:
+                cur.execute(query_sql, (limit,))
+                cols = [desc[0] for desc in cur.description]
+                return [dict(zip(cols, row)) for row in cur.fetchall()]
+
+    def get_run(self, run_id: int) -> Optional[Dict[str, Any]]:
+        query_sql = """
+            SELECT
+                run_id,
+                user_id,
+                query,
+                task,
+                status,
+                document_ids,
+                plan,
+                results,
+                verification,
+                created_at
+            FROM runs
+            WHERE run_id = %s
+        """
+
+        with get_connection() as conn:
+            with conn.cursor() as cur:
+                cur.execute(query_sql, (run_id,))
+                row = cur.fetchone()
+
+                if not row:
+                    return None
+
+                cols = [desc[0] for desc in cur.description]
+                return dict(zip(cols, row))
+    def create_generated_document(
+        self,
+        filename: str,
+        document_type: str,
+        file_path: str,
+        source_query: str,
+        document_ids: list[int] | None = None,
+    ) -> int:
+        query = """
+            INSERT INTO generated_documents (
+                filename,
+                document_type,
+                file_path,
+                source_query,
+                document_ids
+            )
+            VALUES (%s, %s, %s, %s, %s)
+            RETURNING generated_document_id
+        """
+        with get_connection() as conn:
+            with conn.cursor() as cursor:
+                cursor.execute(
+                    query,
+                    (filename, document_type, file_path, source_query, document_ids),
+                )
+                generated_document_id = cursor.fetchone()[0]
+            conn.commit()
+        return generated_document_id
+
+    def get_generated_documents(self, limit: int = 100):
+        query = """
+            SELECT
+                generated_document_id,
+                filename,
+                document_type,
+                file_path,
+                source_query,
+                document_ids,
+                created_at
+            FROM generated_documents
+            ORDER BY created_at DESC
+            LIMIT %s
+        """
+        with get_connection() as conn:
+            with conn.cursor() as cursor:
+                cursor.execute(query, (limit,))
+                return cursor.fetchall()
+
+    def get_generated_document(self, generated_document_id: int):
+        query = """
+            SELECT
+                generated_document_id,
+                filename,
+                document_type,
+                file_path,
+                source_query,
+                document_ids,
+                created_at
+            FROM generated_documents
+            WHERE generated_document_id = %s
+        """
+        with get_connection() as conn:
+            with conn.cursor() as cursor:
+                cursor.execute(query, (generated_document_id,))
+                return cursor.fetchone()

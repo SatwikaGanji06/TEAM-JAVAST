@@ -96,7 +96,7 @@ def test_similarity_ranking(vector_store):
 
     query = "AI and machine learning"
     query_emb = embed_text(query)
-    results = vector_store.search_similar_chunks(query_emb, top_k=3)
+    results = vector_store.search_similar_chunks(query_emb, top_k=3, document_ids=[doc_id])
 
     # Result texts (chunk_text is now index 3)
     result_texts = [r[3] for r in results]

@@ -4,7 +4,7 @@ from backend.agent.agent import run_agent
 def test_agent_executes_multiple_tools(monkeypatch):
     calls = []
 
-    def fake_execute_step(step):
+    def fake_execute_step(step, **kwargs):
         calls.append(step["action"])
 
         return {

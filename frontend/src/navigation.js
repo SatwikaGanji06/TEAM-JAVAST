@@ -1,8 +1,12 @@
-export const NAV_SECTIONS = [
+﻿export const NAV_SECTIONS = [
   {
     id: 'main',
     label: 'Main',
-    items: [{ id: 'home', label: 'Home' }],
+    items: [
+      { id: 'general-chat', label: 'General Chat' },
+      { id: 'home', label: 'Home' },
+      { id: 'analysis', label: 'Analysis' },
+    ],
   },
   {
     id: 'workspace',
@@ -11,6 +15,7 @@ export const NAV_SECTIONS = [
       { id: 'documents', label: 'Documents' },
       { id: 'knowledge-base', label: 'Knowledge Base' },
       { id: 'runs', label: 'Runs' },
+      { id: 'generated-documents', label: 'Generated Documents' },
     ],
   },
   {
@@ -19,21 +24,23 @@ export const NAV_SECTIONS = [
     items: [
       { id: 'models', label: 'Models' },
       { id: 'sovereignty', label: 'Sovereignty' },
+      { id: 'audit', label: 'Audit' },
     ],
   },
 ]
 
 export const PAGE_TITLES = {
+  'general-chat': 'General Chat',
   home: 'Home',
+  analysis: 'Analysis',
   documents: 'Documents',
   'knowledge-base': 'Knowledge Base',
   runs: 'Runs',
-  'run-detail': 'Run',
+  'generated-documents': 'Generated Documents',
   models: 'Models',
   sovereignty: 'Sovereignty',
+  audit: 'Audit',
   profile: 'Profile',
-  'new-analysis': 'New Analysis',
-  'coding-agent': 'Coding Agent',
 }
 
 export const PRIMARY_PAGE_IDS = NAV_SECTIONS.flatMap((section) =>

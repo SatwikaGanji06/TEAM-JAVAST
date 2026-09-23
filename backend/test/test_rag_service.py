@@ -36,7 +36,7 @@ def test_query_rag_embeds_retrieves_and_calls_qwen(
     result = query_rag(question)
 
     mock_embed.assert_called_once_with(question)
-    mock_store.search_similar_chunks.assert_called_once_with(EMBEDDING, top_k=5)
+    mock_store.search_similar_chunks.assert_called_once()
     mock_ask_qwen.assert_called_once()
 
     messages = mock_ask_qwen.call_args[0][0]

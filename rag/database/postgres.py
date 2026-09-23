@@ -71,13 +71,14 @@ class VectorStore:
                         (document_id, chunk_index, text, embedding, Jsonb(metadata))
                     )
 
-    def search_similar_chunks(self, query_embedding: list[float], top_k: int = 5):
+    def search_similar_chunks(self, query_embedding: list[float], top_k: int = 5, document_ids: list[int] | None = None):
         """
         Perform a similarity search using cosine distance.
 
         Args:
             query_embedding: 1024-dimensional vector.
             top_k: Number of top results to return.
+            document_ids: Optional list of document IDs to restrict the search to.
 
         Returns:
             List of tuples (chunk_id, document_id, chunk_index, chunk_text, metadata, similarity).
@@ -89,8 +90,15 @@ class VectorStore:
 
         with self._get_connection() as conn:
             with conn.cursor() as cur:
-                cur.execute(
-                    """
+                # Construct the query with optional document_id filtering
+                where_clause = ""
+                params = [query_embedding, query_embedding]
+
+                if document_ids:
+                    where_clause = "WHERE document_id = ANY(%s)"
+                    params.insert(1, document_ids) # Insert document_ids after the first query_embedding
+
+                query = f"""
                     SELECT
                         chunk_id,
                         document_id,
@@ -99,11 +107,13 @@ class VectorStore:
                         metadata,
                         1 - (embedding <=> %s::vector) as similarity
                     FROM document_chunks
+                    {where_clause}
                     ORDER BY embedding <=> %s::vector
                     LIMIT %s
-                    """,
-                    (query_embedding, query_embedding, top_k)
-                )
+                    """
+
+                params.append(top_k)
+                cur.execute(query, params)
                 return cur.fetchall()
 
     def delete_chunks_for_document(self, document_id: int):

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+﻿import { useEffect, useState } from 'react'
 import FileUploader from '../analysis/FileUploader.jsx'
 
 export default function ChatInput({
@@ -6,11 +6,13 @@ export default function ChatInput({
   onSend,
   file = null,
   onFileChange,
+  onUploaded,
   placeholder = 'Ask a question about the indexed documents…',
   draft = '',
 }) {
   const [value, setValue] = useState(draft)
   const [indexing, setIndexing] = useState(false)
+  const [generateApprovalNote, setGenerateApprovalNote] = useState(false)
 
   useEffect(() => {
     if (draft) {
@@ -25,18 +27,22 @@ export default function ChatInput({
     if (blocked) return
     if (!next && !file) return
 
-    onSend(next || 'Summarize the indexed documents.')
+    onSend(
+      next || `Summarize ${file.name}.`,
+      generateApprovalNote
+    )
+
     setValue('')
   }
 
   const canSend = !blocked && Boolean(value.trim() || file)
 
   return (
-    <div className="rounded-lg border border-line bg-panel px-4 py-4 focus-within:border-accent">
+    <div className="rounded-sm border border-line bg-panel p-3">
       <label className="block">
-        <span className="sr-only">Ask the agent</span>
+        <span className="sr-only">Message</span>
         <textarea
-          rows={3}
+          rows={2}
           value={value}
           disabled={disabled}
           placeholder={placeholder}
@@ -47,30 +53,49 @@ export default function ChatInput({
               submit()
             }
           }}
-          className="w-full resize-none bg-transparent px-0.5 py-1 text-sm leading-6 text-ink outline-none placeholder:text-ink-secondary disabled:opacity-50"
+          className="w-full resize-none bg-transparent text-sm leading-6 text-ink outline-none placeholder:text-muted disabled:opacity-50"
         />
       </label>
-      <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
+
+      <div className="mt-2 flex flex-wrap items-center justify-between gap-3">
         <div className="flex min-w-0 flex-1 flex-wrap items-center gap-x-3 gap-y-2">
-          <FileUploader
-            variant="composer"
-            file={file}
-            disabled={disabled}
-            onFileChange={onFileChange}
-            onUploadingChange={setIndexing}
-          />
-          <p className="font-mono text-[10px] tracking-[0.12em] text-ink-secondary uppercase">
+          {onFileChange ? (
+            <FileUploader
+              variant="composer"
+              file={file}
+              disabled={disabled}
+              onFileChange={onFileChange}
+              onUploaded={onUploaded}
+              onUploadingChange={setIndexing}
+            />
+          ) : null}
+
+          <label className="flex cursor-pointer items-center gap-2 text-[10px] font-medium tracking-[0.12em] text-muted uppercase">
+            <input
+              type="checkbox"
+              checked={generateApprovalNote}
+              disabled={blocked}
+              onChange={(event) =>
+                setGenerateApprovalNote(event.target.checked)
+              }
+              className="h-3.5 w-3.5 rounded border-line accent-sky-500"
+            />
+            <span>Generate Approval Note</span>
+          </label>
+
+          <p className="text-[10px] tracking-[0.12em] text-muted uppercase">
             Enter to send · Shift+Enter for newline
           </p>
         </div>
+
         <button
           type="button"
           disabled={!canSend}
           onClick={submit}
-          className={`inline-flex h-8 shrink-0 items-center rounded-md px-4 font-mono text-[11px] font-semibold tracking-[0.12em] uppercase transition-colors ${
+          className={`rounded-sm px-4 py-1.5 text-[11px] font-semibold tracking-[0.14em] uppercase transition-colors ${
             !canSend
-              ? 'cursor-not-allowed bg-elevated text-ink-secondary'
-              : 'bg-accent text-app hover:bg-accent-strong'
+              ? 'cursor-not-allowed bg-elevated text-muted'
+              : 'bg-sky-500/90 text-slate-950 hover:bg-sky-400'
           }`}
         >
           Send

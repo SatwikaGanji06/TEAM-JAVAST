@@ -2,7 +2,7 @@ export const ANALYSIS_RESULT_META = {
   document: 'Finance_Mids_Inspection_Report.pdf',
   analysisType: 'Inspection Report Analysis',
   status: 'Analysis Complete',
-  processing: 'Local AI Workbench',
+  processing: 'Local LOKAI',
   model: 'Qwen3:4B',
   isDemo: true,
 }

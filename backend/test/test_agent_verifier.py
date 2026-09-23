@@ -99,7 +99,7 @@ from backend.agent.agent import run_agent
 
 
 def test_run_agent_includes_verification(monkeypatch):
-    def fake_execute_step(step):
+    def fake_execute_step(step, **kwargs):
         return {
             "action": step["action"],
             "success": True,

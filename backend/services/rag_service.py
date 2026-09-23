@@ -1,8 +1,9 @@
-from backend.models.qwen import ask_qwen
+﻿from backend.models.qwen import ask_qwen
 from rag.database.postgres import VectorStore
 from rag.embeddings.ollama_embeddings import embed_text
 
 DEFAULT_TOP_K = 5
+SIMILARITY_THRESHOLD = 0.45
 
 NO_INDEXED_INFORMATION_ANSWER = (
     "The information was not found in the indexed documents."
@@ -17,27 +18,17 @@ SYSTEM_PROMPT = (
 )
 
 
-def query_rag(query: str, top_k: int = DEFAULT_TOP_K) -> dict:
+def query_rag(query: str, top_k: int = DEFAULT_TOP_K, document_ids: list[int] | None = None) -> dict:
     """
     Retrieve relevant document chunks and answer with the local Qwen model.
 
-    Returns:
-        {
-            "answer": str,
-            "sources": [
-                {
-                    "document": str | None,
-                    "document_id": int,
-                    "chunk_index": int,
-                    "content": str,
-                    "similarity": float,
-                    "metadata": dict,
-                },
-                ...
-            ],
-        }
+    When document_ids are explicitly supplied, they define the retrieval
+    scope. For generic analysis requests, the best chunks within that
+    selected scope are used even when their semantic similarity is below
+    the normal relevance threshold.
     """
     question = (query or "").strip()
+
     if not question:
         return {
             "answer": NO_INDEXED_INFORMATION_ANSWER,
@@ -45,14 +36,43 @@ def query_rag(query: str, top_k: int = DEFAULT_TOP_K) -> dict:
         }
 
     query_embedding = embed_text(question)
+
     store = VectorStore()
-    rows = store.search_similar_chunks(query_embedding, top_k=top_k)
+
+    rows = store.search_similar_chunks(
+        query_embedding,
+        top_k=top_k,
+        document_ids=document_ids,
+    )
 
     sources = []
+
     for row in rows:
         source = _source_from_row(row)
-        if source is not None:
+
+        if (
+            source is not None
+            and source["similarity"] >= SIMILARITY_THRESHOLD
+        ):
             sources.append(source)
+
+    # Explicit document scope fallback.
+    #
+    # If the user selected documents, those documents are the
+    # retrieval boundary. A generic request such as
+    # "analyse the documents" may have low semantic similarity
+    # even though the selected documents are exactly what the
+    # user wants analyzed.
+    if not sources and document_ids:
+        scoped_sources = []
+
+        for row in rows:
+            source = _source_from_row(row)
+
+            if source is not None:
+                scoped_sources.append(source)
+
+        sources = scoped_sources[:top_k]
 
     if not sources:
         return {
@@ -60,14 +80,29 @@ def query_rag(query: str, top_k: int = DEFAULT_TOP_K) -> dict:
             "sources": [],
         }
 
+    scope_instruction = ""
+
+    if document_ids:
+        scope_instruction = (
+            "The user explicitly selected these documents. "
+            "Treat them as the complete analysis scope. "
+            "Do not introduce information from documents outside "
+            "this selected scope.\n\n"
+        )
+
     messages = [
-        {"role": "system", "content": SYSTEM_PROMPT},
+        {
+            "role": "system",
+            "content": SYSTEM_PROMPT,
+        },
         {
             "role": "user",
             "content": (
-                "Document context:\n"
-                f"{_build_context(sources)}\n\n"
-                f"Question:\n{question}"
+                scope_instruction
+                + "Document context:\n"
+                + _build_context(sources)
+                + "\n\nQuestion:\n"
+                + question
             ),
         },
     ]
@@ -79,6 +114,44 @@ def query_rag(query: str, top_k: int = DEFAULT_TOP_K) -> dict:
         "sources": sources,
     }
 
+def get_document_catalog() -> list[dict]:
+    """
+    Fetch the list of all indexed documents from the database,
+    including the number of indexed chunks for each document.
+    """
+    from backend.database.connection import get_connection
+
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute(
+                """
+                SELECT
+                    d.document_id,
+                    d.file_name,
+                    d.uploaded_at,
+                    COUNT(dc.chunk_id) AS chunks_created
+                FROM documents d
+                LEFT JOIN document_chunks dc
+                    ON dc.document_id = d.document_id
+                GROUP BY
+                    d.document_id,
+                    d.file_name,
+                    d.uploaded_at
+                ORDER BY d.uploaded_at DESC
+                """
+            )
+
+            rows = cur.fetchall()
+
+    return [
+        {
+            "document_id": row[0],
+            "file_name": row[1],
+            "uploaded_at": row[2].isoformat() if row[2] else None,
+            "chunks_created": int(row[3] or 0),
+        }
+        for row in rows
+    ]
 
 def _source_from_row(row) -> dict | None:
     """
@@ -120,3 +193,5 @@ def _build_context(sources: list[dict]) -> str:
         sections.append(f"{header}\n{source['content']}")
 
     return "\n\n".join(sections)
+
+

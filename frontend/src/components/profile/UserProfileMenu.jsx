@@ -38,7 +38,7 @@ export default function UserProfileMenu({ onNavigate }) {
   }
 
   function handleSignOut() {
-    setNotice('No signed-in session to close.')
+    setNotice('Demo profile only — no session to close.')
     window.setTimeout(() => setOpen(false), 900)
   }
 
@@ -58,7 +58,7 @@ export default function UserProfileMenu({ onNavigate }) {
         <span className="flex h-6 w-6 items-center justify-center rounded-sm border border-line bg-elevated text-[10px] font-semibold tracking-wide text-ink">
           {DEMO_PROFILE.initials}
         </span>
-        <span className="hidden text-xs text-ink lg:inline">{DEMO_PROFILE.name}</span>
+        <span className="hidden text-xs text-ink sm:inline">{DEMO_PROFILE.name}</span>
         <span className="text-[10px] text-muted" aria-hidden="true">
           ▾
         </span>
@@ -68,7 +68,7 @@ export default function UserProfileMenu({ onNavigate }) {
         <div
           id={menuId}
           role="menu"
-          className="absolute top-[calc(100%+8px)] right-0 z-30 w-64 rounded-md border border-line bg-panel p-3"
+          className="absolute top-[calc(100%+8px)] right-0 z-30 w-64 rounded-sm border border-line bg-panel p-3 shadow-[0_12px_32px_rgba(0,0,0,0.28)]"
         >
           <div className="border-b border-line pb-3">
             <div className="flex items-center gap-2.5">
@@ -77,11 +77,12 @@ export default function UserProfileMenu({ onNavigate }) {
               </span>
               <div className="min-w-0">
                 <p className="truncate text-sm text-ink">{DEMO_PROFILE.name}</p>
-                {DEMO_PROFILE.role ? (
-                  <p className="text-xs text-ink-secondary">{DEMO_PROFILE.role}</p>
-                ) : null}
+                <p className="text-xs text-ink-secondary">{DEMO_PROFILE.role}</p>
               </div>
             </div>
+            <p className="mt-2 text-[10px] tracking-[0.16em] text-muted uppercase">
+              {DEMO_PROFILE.label}
+            </p>
           </div>
 
           <div className="space-y-1 border-b border-line py-2">
@@ -102,7 +103,7 @@ export default function UserProfileMenu({ onNavigate }) {
               Preferences
             </button>
             <div className="px-2 pt-2 pb-1">
-              <p className="mb-1.5 font-mono text-[10px] font-medium tracking-[0.16em] text-ink-secondary uppercase">
+              <p className="mb-1.5 text-[10px] font-medium tracking-[0.16em] text-muted uppercase">
                 Theme
               </p>
               <ThemeSelector size="sm" />
@@ -110,11 +111,12 @@ export default function UserProfileMenu({ onNavigate }) {
           </div>
 
           <div className="border-b border-line py-3">
-            <p className="font-mono text-[10px] tracking-[0.16em] text-ink-secondary uppercase">
-              Session
+            <p className="text-[10px] tracking-[0.16em] text-muted uppercase">
+              Local session
             </p>
-            <p className="mt-1 font-mono text-[11px] font-medium tracking-[0.12em] text-ink-secondary uppercase">
-              Local
+            <p className="mt-1 flex items-center gap-1.5 text-[11px] font-medium tracking-[0.12em] text-success uppercase">
+              <span className="h-1.5 w-1.5 rounded-full bg-success" aria-hidden="true" />
+              {DEMO_PROFILE.status}
             </p>
           </div>
 

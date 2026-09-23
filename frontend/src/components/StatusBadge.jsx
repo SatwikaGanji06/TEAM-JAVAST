@@ -7,18 +7,6 @@ const TONES = {
     dot: 'bg-accent',
     text: 'text-ink',
   },
-  processing: {
-    dot: 'bg-accent agent-running-dot',
-    text: 'text-accent',
-  },
-  failed: {
-    dot: 'bg-danger',
-    text: 'text-danger',
-  },
-  cancelled: {
-    dot: 'bg-muted',
-    text: 'text-muted',
-  },
 }
 
 function LockIcon() {
@@ -26,7 +14,7 @@ function LockIcon() {
     <svg
       viewBox="0 0 16 16"
       aria-hidden="true"
-      className="h-3 w-3 text-system"
+      className="h-3 w-3 text-accent"
     >
       <path
         fill="currentColor"
@@ -45,7 +33,7 @@ export default function StatusBadge({
 
   return (
     <span
-      className={`inline-flex items-center gap-1.5 font-mono text-[11px] font-medium tracking-[0.12em] uppercase ${styles.text}`}
+      className={`inline-flex items-center gap-1.5 text-xs font-medium tracking-[0.12em] uppercase ${styles.text}`}
     >
       {icon === 'lock' ? (
         <LockIcon />

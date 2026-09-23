@@ -20,9 +20,21 @@ function DocumentIcon() {
   )
 }
 
+function SearchIcon() {
+  return (
+    <svg viewBox="0 0 16 16" aria-hidden="true" className="h-3.5 w-3.5">
+      <path
+        fill="currentColor"
+        d="M6.75 2.5a4.25 4.25 0 1 0 2.68 7.55l2.76 2.76.53-.53-2.76-2.76A4.25 4.25 0 0 0 6.75 2.5Zm0 1.5a2.75 2.75 0 1 1 0 5.5 2.75 2.75 0 0 1 0-5.5Z"
+      />
+    </svg>
+  )
+}
+
 const ICONS = {
   plus: PlusIcon,
   document: DocumentIcon,
+  search: SearchIcon,
 }
 
 export default function QuickActionCard({ action, onSelect }) {

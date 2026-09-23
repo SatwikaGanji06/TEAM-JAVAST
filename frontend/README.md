@@ -1,4 +1,4 @@
-# Sovereign AI Workbench — Frontend
+# LOKAI — Frontend
 
 React + Vite UI for TEAM JAVAST.
 

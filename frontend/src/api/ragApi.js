@@ -63,8 +63,66 @@ async function postJson(path, body) {
   }
 }
 
-export async function queryRAG(query) {
-  const data = await postJson('/api/rag/query', { query })
+async function postBlob(path, body) {
+  let response
+
+  try {
+    response = await fetch(`${API_BASE_URL}${path}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(body),
+    })
+  } catch {
+    throw backendUnavailableError()
+  }
+
+  if (!response.ok) {
+    await throwForFailedResponse(response)
+  }
+
+  try {
+    const blob = await response.blob()
+    const documentId = response.headers.get('X-Generated-Document-ID')
+    const filename =
+      response.headers.get('Content-Disposition')?.match(/filename="?([^"]+)"?/)?.[1] ||
+      'LOKAI_Approval_Note.docx'
+
+    return {
+      blob,
+      documentId: documentId ? Number(documentId) : null,
+      filename,
+    }
+  } catch {
+    throw backendUnavailableError()
+  }
+}
+
+export async function runAgentAnalysis(query, documentIds = null) {
+  const data = await postJson('/api/agent/analyze', {
+    query,
+    document_ids: documentIds,
+  })
+
+  return data
+}
+
+export async function generateApprovalNote(
+  message,
+  documentIds = null
+) {
+  return postBlob('/api/approval-note', {
+    message,
+    document_ids: documentIds,
+  })
+}
+
+export async function queryRAG(query, documentIds = null) {
+  const data = await postJson('/api/rag/query', {
+    query,
+    document_ids: documentIds,
+  })
 
   if (typeof data?.answer !== 'string' || !Array.isArray(data?.sources)) {
     throw backendUnavailableError()

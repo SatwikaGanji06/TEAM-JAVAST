@@ -18,7 +18,7 @@ export default function Profile() {
       <header>
         <h2 className="text-lg font-medium tracking-tight text-ink">User profile</h2>
         <p className="mt-1 text-sm text-ink-secondary">
-          Local workbench account. Sign-in is not connected yet.
+          Local LOKAI account. Sign-in is not connected yet.
         </p>
       </header>
 
@@ -40,7 +40,7 @@ export default function Profile() {
 
       <section className="rounded-sm border border-line bg-panel px-5 py-5">
         <h3 className="text-[11px] font-semibold tracking-[0.22em] text-ink-secondary uppercase">
-          Workbench access
+          LOKAI access
         </h3>
         <div className="mt-3 grid grid-cols-2 gap-4">
           <Field label="Access">{DEMO_PROFILE.access}</Field>

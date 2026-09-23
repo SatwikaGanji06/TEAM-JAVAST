@@ -42,6 +42,7 @@ export function fileTypeLabel(file) {
 export default function FileUploader({
   file,
   onFileChange,
+  onUploaded,
   onUploadingChange,
   variant = 'dropzone',
   disabled = false,
@@ -54,16 +55,12 @@ export default function FileUploader({
   const [uploadResult, setUploadResult] = useState(null)
 
   const busy = disabled || uploading
+  const indexed =
+    uploadResult?.status === 'success' &&
+    typeof uploadResult.chunks_created === 'number'
 
   async function applyFile(nextFile) {
     if (!nextFile || disabled || uploadingRef.current) return
-
-    if (nextFile.mock) {
-      setError('')
-      setUploadResult(null)
-      onFileChange(nextFile)
-      return
-    }
 
     if (!isAcceptedFile(nextFile)) {
       setError('Unsupported file type. Use a PDF or TXT file.')
@@ -79,8 +76,10 @@ export default function FileUploader({
       const result = await uploadRAGDocument(nextFile)
       setUploadResult(result)
       onFileChange(nextFile)
+      onUploaded?.(result)
     } catch (uploadError) {
       setUploadResult(null)
+      onFileChange(null)
       setError(uploadErrorMessage(uploadError))
     } finally {
       uploadingRef.current = false
@@ -115,15 +114,16 @@ export default function FileUploader({
       type="file"
       className="sr-only"
       accept={ACCEPTED_EXTENSIONS.join(',')}
-      aria-label="Attach a document"
+      aria-label="Attach a PDF or TXT file"
       disabled={busy}
       onChange={handleInputChange}
     />
   )
 
-  const chunksLabel =
-    typeof uploadResult?.chunks_created === 'number'
-      ? ` · ${uploadResult.chunks_created} chunks`
+  const resultLabel = indexed
+    ? ` · ${uploadResult.chunks_created} chunks indexed`
+    : uploadResult
+      ? ' · Upload returned without a confirmed index'
       : ''
 
   if (variant === 'composer') {
@@ -135,11 +135,8 @@ export default function FileUploader({
               <p className="truncate text-xs text-ink">{file.name}</p>
               <p className="text-[10px] tracking-[0.12em] text-muted uppercase">
                 {fileTypeLabel(file)}
-                {file.mock
-                  ? ' · Attached'
-                  : file.size
-                    ? ` · ${formatFileSize(file.size)}${chunksLabel}`
-                    : ` · Attached${chunksLabel}`}
+                {file.size ? ` · ${formatFileSize(file.size)}` : ''}
+                {resultLabel}
               </p>
             </div>
             <button
@@ -156,7 +153,7 @@ export default function FileUploader({
           type="button"
           disabled={busy}
           onClick={() => inputRef.current?.click()}
-          className="inline-flex h-8 items-center rounded-md border border-line px-3 font-mono text-[11px] font-semibold tracking-[0.12em] text-ink-secondary uppercase transition-colors hover:border-accent/60 hover:text-ink disabled:cursor-not-allowed disabled:opacity-40"
+          className="inline-flex h-8 items-center rounded-sm border border-line px-3 text-[11px] font-semibold tracking-[0.12em] text-ink-secondary uppercase transition-colors hover:border-accent/60 hover:text-ink disabled:cursor-not-allowed disabled:opacity-40"
         >
           Attach
         </button>
@@ -164,7 +161,7 @@ export default function FileUploader({
         {error ? (
           <p className="w-full text-xs text-warning">{error}</p>
         ) : uploading ? (
-          <p className="w-full text-xs text-muted">Indexing document…</p>
+          <p className="w-full text-xs text-muted">Uploading and indexing…</p>
         ) : null}
       </div>
     )
@@ -176,13 +173,12 @@ export default function FileUploader({
         <div className="flex items-center justify-between gap-4 rounded-sm border border-accent/40 bg-panel px-4 py-4">
           <div>
             <p className="text-[11px] font-semibold tracking-[0.18em] text-muted uppercase">
-              Selected document
+              Uploaded document
             </p>
             <p className="mt-1 text-sm text-ink">{file.name}</p>
             <p className="mt-1 text-xs text-muted">
-              {file.mock
-                ? `${fileTypeLabel(file)} · Attached`
-                : `${formatFileSize(file.size)} · ${fileTypeLabel(file)}${chunksLabel}`}
+              {formatFileSize(file.size)} · {fileTypeLabel(file)}
+              {resultLabel}
             </p>
           </div>
           <button
@@ -212,9 +208,11 @@ export default function FileUploader({
           <p className="text-[11px] font-semibold tracking-[0.22em] text-muted uppercase">
             Document
           </p>
-          <p className="mt-3 text-sm text-ink">Drop a file here</p>
+          <p className="mt-3 text-sm text-ink">Drop a PDF or TXT file here</p>
           <p className="mt-1 text-xs text-muted">
-            {uploading ? 'Indexing document…' : 'PDF or TXT files'}
+            {uploading
+              ? 'Uploading and indexing…'
+              : 'Files are indexed only after the upload API confirms it'}
           </p>
           <button
             type="button"

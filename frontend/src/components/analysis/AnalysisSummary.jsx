@@ -33,7 +33,7 @@ export default function AnalysisSummary({
         onClick={onStart}
         className={`mt-5 w-full rounded-sm px-4 py-2.5 text-xs font-semibold tracking-[0.16em] uppercase transition-colors ${
           canStart
-            ? 'bg-accent text-app hover:bg-accent-strong'
+            ? 'bg-sky-500/90 text-slate-950 hover:bg-sky-400'
             : 'cursor-not-allowed bg-elevated text-muted'
         }`}
       >

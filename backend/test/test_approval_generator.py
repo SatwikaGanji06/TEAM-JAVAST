@@ -32,7 +32,7 @@ def test_generated_document_contains_expected_content(tmp_path):
         for paragraph in document.paragraphs
     )
 
-    assert "Industrial AI Workbench" in text
+    assert "LOKAI" in text
     assert "Analysis Summary" in text
     assert "Inspection analysis completed successfully." in text
     assert "NEEDS_REVIEW" in text
@@ -59,7 +59,7 @@ def test_build_approval_note_data_from_agent_result():
 
     result = build_approval_note_data(agent_result)
 
-    assert result["title"] == "Industrial AI Workbench - Approval Note"
+    assert result["title"] == "LOKAI - Approval Note"
     assert result["query"] == "Analyze the pump inspection report."
     assert result["task"] == "tool_analysis"
     assert result["summary"] == (
@@ -365,3 +365,4 @@ def test_docx_is_readable_after_generation(tmp_path):
     assert "Inspection completed." in text
     assert "VERIFIED" in text
     assert "Inspection report section 4." in text
+
