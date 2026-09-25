@@ -107,7 +107,11 @@ def query_rag(query: str, top_k: int = DEFAULT_TOP_K, document_ids: list[int] | 
         },
     ]
 
-    answer = ask_qwen(messages)
+    answer = ask_qwen(
+        messages,
+        think=False,
+        num_predict=768,
+    )
 
     return {
         "answer": answer,

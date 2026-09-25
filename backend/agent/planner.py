@@ -189,7 +189,13 @@ def create_plan(query: str) -> dict[str, Any]:
                         "Search indexed internal documents for SOP "
                         "limits and relevant evidence."
                     ),
-                    "query": question,
+                    "query": (
+                        "Find the applicable SOP limits, requirements, acceptance "
+                        "criteria, and supporting evidence relevant to the "
+                        "measurements and findings in the inspection document. "
+                        "Return only information supported by the indexed "
+                        "documents. Do not perform calculations."
+                    ),
                 },
                 {
                     "step": 3,

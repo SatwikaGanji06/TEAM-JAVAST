@@ -25,7 +25,7 @@ def test_agent_executes_multiple_tools(monkeypatch):
         "and calculate the deviation."
     )
 
-    assert result["task"] == "tool_analysis"
+    assert result["task"] == "industrial_analysis"
 
     actions = [step["action"] for step in result["plan"]]
 
@@ -47,3 +47,4 @@ def test_agent_executes_multiple_tools(monkeypatch):
         item["success"] is True
         for item in result["results"]
     )
+

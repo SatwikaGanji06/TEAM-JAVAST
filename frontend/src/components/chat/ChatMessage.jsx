@@ -1,4 +1,4 @@
-function sourceTitle(source, index) {
+﻿function sourceTitle(source, index) {
   const fromField =
     typeof source?.document === 'string'
       ? source.document.trim()
@@ -22,8 +22,7 @@ function statusLabel(status) {
 
 function renderInline(text, keyPrefix = '') {
   const normalized = String(text || '')
-    .replace(/\\\*\\\*/g, '**')
-    .replace(/\\\./g, '.')
+    .replace(/\\([*.:])/g, '$1')
   const parts = normalized.split(/(\*\*[^*]+\*\*)/g)
 
   return parts.map((part, index) => {
@@ -52,8 +51,7 @@ function renderInline(text, keyPrefix = '') {
 
 function renderAnalysisContent(text) {
   const normalizedText = String(text || '')
-    .replace(/\\\*\\\*/g, '**')
-    .replace(/\\\./g, '.')
+    .replace(/\\([*.:])/g, '$1')
   const lines = normalizedText.split(/\r?\n/)
   const elements = []
   let listItems = []
@@ -71,7 +69,7 @@ function renderAnalysisContent(text) {
               key={`unordered-item-${index}`}
               className="relative text-sm leading-6 text-ink"
             >
-              <span className="absolute -left-4 text-accent">�</span>
+              <span className="absolute -left-4 text-accent">•</span>
               {renderInline(item, `u-${elements.length}-${index}`)}
             </li>
           ))}
@@ -611,5 +609,6 @@ export default function ChatMessage({ message }) {
     </article>
   )
 }
+
 
 

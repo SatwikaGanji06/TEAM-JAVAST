@@ -58,7 +58,7 @@ def test_planner_can_combine_document_rag_and_calculation():
         "and calculate the deviation."
     )
 
-    assert plan["task"] == "tool_analysis"
+    assert plan["task"] == "industrial_analysis"
 
     actions = [step["action"] for step in plan["steps"]]
 
@@ -73,3 +73,5 @@ def test_planner_rejects_empty_query():
         assert False
     except ValueError:
         assert True
+
+

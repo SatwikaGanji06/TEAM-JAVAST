@@ -13,7 +13,7 @@ client = TestClient(app)
 
 
 def test_approval_note_endpoint_returns_docx(monkeypatch, tmp_path):
-    def fake_run_agent(message):
+    def fake_run_agent(message, document_ids=None):
         return {
             "query": message,
             "task": "tool_analysis",
@@ -68,10 +68,9 @@ def test_approval_note_endpoint_returns_docx(monkeypatch, tmp_path):
     )
     assert len(response.content) > 0
 
-    generated_file = (
-        generated_dir / "approval_note.docx"
-    )
+    generated_files = list(generated_dir.glob("LOKAI_Approval_Note_*.docx"))
 
-    assert generated_file.exists()
+    assert generated_files
 
-    generated_file.unlink(missing_ok=True)
+    for generated_file in generated_files:
+        generated_file.unlink(missing_ok=True)

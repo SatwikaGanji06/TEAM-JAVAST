@@ -1,4 +1,4 @@
-import logging
+﻿import logging
 from datetime import datetime
 from pathlib import Path
 import uuid
@@ -311,7 +311,6 @@ def chat(payload: ChatRequest) -> ChatResponse:
         # 3. Run the agent
         agent_result = run_agent(
             message_text,
-            document_ids=payload.document_ids,
         )
 
         # 4. Extract final response
@@ -333,8 +332,13 @@ def chat(payload: ChatRequest) -> ChatResponse:
     except HTTPException:
         raise
 
-    except Exception as e:
+    except ValueError as e:
+        raise HTTPException(
+            status_code=400,
+            detail=str(e),
+        )
 
+    except Exception as e:
         raise HTTPException(
             status_code=503,
             detail=(
@@ -532,6 +536,8 @@ def get_run(run_id: int):
         raise HTTPException(status_code=404, detail="Run not found.")
 
     return row
+
+
 
 
 

@@ -189,6 +189,12 @@ export default function GeneralChat() {
           <textarea
             value={input}
             onChange={(event) => setInput(event.target.value)}
+            onKeyDown={(event) => {
+              if (event.key === 'Enter' && !event.shiftKey) {
+                event.preventDefault()
+                handleSubmit(event)
+              }
+            }}
             placeholder="Message LOKAI..."
             rows={2}
             className="w-full resize-none bg-transparent px-1 py-1 text-sm leading-6 text-ink outline-none placeholder:text-muted"
@@ -216,3 +222,4 @@ export default function GeneralChat() {
     </div>
   )
 }
+

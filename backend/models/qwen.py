@@ -1,3 +1,4 @@
+﻿from typing import Any
 import json
 import requests
 
@@ -7,13 +8,17 @@ OLLAMA_URL = "http://127.0.0.1:11434/api/chat"
 MODEL = "qwen3:4b"
 
 
-def ask_qwen(messages: list) -> str:
+def ask_qwen(
+    messages: list,
+    think: bool | None = None,
+    num_predict: int | None = None,
+) -> str:
     """
-    Send a chat request to the local Ollama model and consume the
-    response as a stream.
+    Send a chat request to the local Ollama model.
 
-    Streaming is important because Qwen may take several seconds
-    before producing its first token on CPU-only hardware.
+    Optional generation controls allow callers such as RAG to use
+    bounded, non-thinking generation without changing the default
+    behavior of the normal agent response path.
     """
 
     if not check_network_request(OLLAMA_URL):
@@ -21,13 +26,24 @@ def ask_qwen(messages: list) -> str:
             f"Network request blocked: {OLLAMA_URL}"
         )
 
+    payload: dict[str, Any] = {
+        "model": MODEL,
+        "messages": messages,
+        "stream": True,
+    }
+
+    if think is not None:
+        payload["think"] = think
+
+    if num_predict is not None:
+        payload["options"] = {
+            "num_predict": num_predict,
+        }
+
     response = requests.post(
         OLLAMA_URL,
-        json={
-            "model": MODEL,
-            "messages": messages,
-            "stream": True,
-        },
+        json=payload,
+        stream=True,
         timeout=(10, 180),
     )
 

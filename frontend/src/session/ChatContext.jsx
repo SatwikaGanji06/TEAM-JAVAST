@@ -35,11 +35,19 @@ export function ChatProvider({ children }) {
         },
       ])
     } catch (err) {
-      setError(
+      const errorMessage =
         err instanceof Error && err.message.trim()
           ? err.message
-          : 'Unable to reach the local AI backend.',
-      )
+          : 'Unable to reach the local AI backend.'
+
+      setError('')
+      setMessages((current) => [
+        ...current,
+        {
+          role: 'assistant',
+          content: errorMessage,
+        },
+      ])
     } finally {
       setLoading(false)
     }
@@ -73,3 +81,4 @@ export function useChat() {
 
   return value
 }
+
